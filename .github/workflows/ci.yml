@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "**.rs"
+      - Cargo.toml
+      - .github/**
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "**.rs"
+      - Cargo.toml
+      - .github/**
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os:
+          - macos-latest
+          - ubuntu-latest
+          - windows-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          components: rustfmt, clippy
+
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo
+
+      - run: cargo fmt -- --check --verbose
+
+      - run: cargo clippy --all-features --verbose
+      
+      # The features must be tested individually 
+      - run: |
+          cargo test --verbose
+          cargo test --features=futures-01 --no-default-features --verbose
+        env:
+          PLAID_CLIENT_ID: ${{ secrets.PLAID_CLIENT_ID }}
+          PLAID_SECRET: ${{ secrets.PLAID_SECRET }}
