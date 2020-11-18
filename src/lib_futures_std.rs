@@ -21,7 +21,7 @@ use crate::types::*;
 #[allow(dead_code)]
 pub struct Client {
     client_id: String,
-    secret: String,
+    secret: Secret,
     url: String,
     client: ReqwestClient,
 }
@@ -32,7 +32,7 @@ impl Client {
     pub fn new<C, S>(client_id: C, secret: S, environment: Environment) -> Client
     where
         C: Into<String>,
-        S: Into<String>,
+        S: Into<Secret>,
     {
         Client {
             client_id: client_id.into(),

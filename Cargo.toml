@@ -21,6 +21,7 @@ chrono = { version = "0.4", features = ["serde"] }
 futures01 = { version = "0.1", package = "futures", optional = true }
 reqwest = { version = "0.10", features = ["json", "gzip"], optional = true }
 reqwest09 = { version = "0.9", package = "reqwest", optional = true }
+secrecy = "0.7"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 

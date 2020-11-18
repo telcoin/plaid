@@ -4,6 +4,8 @@ use std::convert::TryFrom;
 use std::fmt;
 use std::str::FromStr;
 
+use secrecy::{ExposeSecret, SecretString};
+use serde::ser::Serializer;
 use serde::{Deserialize, Serialize};
 
 pub use account::*;
@@ -14,6 +16,40 @@ mod account;
 mod auth;
 pub(crate) mod serde_utils;
 mod token;
+
+/// A [secure] representation of a [Plaid API secret].
+///
+/// [secure]: https://docs.rs/secrecy/
+/// [Plaid API secret]: https://plaid.com/docs/quickstart/glossary/#secret
+#[derive(Clone, Debug)]
+pub struct Secret(SecretString);
+
+impl Secret {
+    fn new(secret: String) -> Self {
+        Self(SecretString::new(secret))
+    }
+}
+
+impl From<SecretString> for Secret {
+    fn from(value: SecretString) -> Self {
+        Secret(value)
+    }
+}
+
+impl From<String> for Secret {
+    fn from(value: String) -> Self {
+        Secret::new(value)
+    }
+}
+
+impl Serialize for Secret {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.0.expose_secret().serialize(serializer)
+    }
+}
 
 /// API environments to differentiate between testing environments (`Sandbox`
 /// and `Development`) and live, billed, unrestricted API access (`Production`).
