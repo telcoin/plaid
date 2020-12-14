@@ -44,19 +44,19 @@ pub struct AuthResponse {
 pub struct AccountNumbers {
     /// A list of ACH numbers identifying accounts.
     #[serde(default)]
-    ach: Vec<AchAccountNumbers>,
+    pub ach: Vec<AchAccountNumbers>,
 
     /// A list of EFT numbers identifying accounts.
     #[serde(default)]
-    eft: Vec<EftAccountNumbers>,
+    pub eft: Vec<EftAccountNumbers>,
 
     /// A list of IBAN numbers identifying accounts.
     #[serde(default)]
-    international: Vec<InternationalAccountNumbers>,
+    pub international: Vec<InternationalAccountNumbers>,
 
     /// A list of BACS numbers identifying accounts.
     #[serde(default)]
-    bacs: Vec<BacsAccountNumbers>,
+    pub bacs: Vec<BacsAccountNumbers>,
 }
 
 /// The numbers identifying an ACH account.
