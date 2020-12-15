@@ -3,7 +3,7 @@
 use serde::{Deserialize, Serialize};
 
 /// Options for the `auth` request.
-#[derive(Serialize, Default, Debug)]
+#[derive(Serialize, Default, Clone, Debug)]
 pub struct AuthRequestOptions {
     /// A list of `account_ids` to retrieve for the Item.
     ///
@@ -14,7 +14,7 @@ pub struct AuthRequestOptions {
 }
 
 /// The response from performing an `auth` request.
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Clone, Debug)]
 pub struct AuthResponse {
     /// The accounts for which numbers are being retrieved.
     #[serde(default)]
@@ -40,7 +40,7 @@ pub struct AuthResponse {
 /// the country of the account. An account may have more than one number type.
 /// If a particular identifying number type is not used by any accounts for
 /// which data has been requested, the `Vec` for that type will be empty.
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Clone, Debug)]
 pub struct AccountNumbers {
     /// A list of ACH numbers identifying accounts.
     #[serde(default)]
@@ -60,7 +60,7 @@ pub struct AccountNumbers {
 }
 
 /// The numbers identifying an ACH account.
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Clone, Debug)]
 pub struct AchAccountNumbers {
     /// The Plaid account ID associated with the account numbers
     pub account_id: String,
@@ -76,7 +76,7 @@ pub struct AchAccountNumbers {
 }
 
 /// The numbers identifying an EFT account.
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Clone, Debug)]
 pub struct EftAccountNumbers {
     /// The Plaid account ID associated with the account numbers
     pub account_id: String,
@@ -92,7 +92,7 @@ pub struct EftAccountNumbers {
 }
 
 /// The numbers identifying an IBAN account.
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Clone, Debug)]
 pub struct InternationalAccountNumbers {
     /// The Plaid account ID associated with the account numbers
     pub account_id: String,
@@ -105,7 +105,7 @@ pub struct InternationalAccountNumbers {
 }
 
 /// The numbers identifying a BACS account.
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Clone, Debug)]
 pub struct BacsAccountNumbers {
     /// The Plaid account ID associated with the account numbers
     pub account_id: String,

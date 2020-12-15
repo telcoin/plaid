@@ -3,7 +3,7 @@
 use serde::{Deserialize, Serialize};
 
 /// The response from performing an `accounts` request.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct AccountsResponse {
     /// The financial institution accounts associated with the Item.
     #[serde(default)]
@@ -19,7 +19,7 @@ pub struct AccountsResponse {
 }
 
 /// Financial institution accounts associated with the `Item`.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Account {
     /// Plaid’s unique identifier for the account. This value will not change
     /// unless Plaid can't reconcile the account with the data returned by the
@@ -92,7 +92,7 @@ pub struct Account {
 /// Available and current balance information may be cached and is not
 /// guaranteed to be up-to-date in realtime unless the balance object was
 /// returned by `/account/balance/get`.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Balances {
     /// The amount of funds available to be withdrawn from the account, as
     /// determined by the financial institution.
@@ -157,7 +157,7 @@ pub struct Balances {
 
 // TODO: use tagged enum instead of both currency fields
 /// An account balance from a specific point in time.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct HistoricalBalance {
     /// The date of the calculated historical balance.
     pub date: chrono::NaiveDate,
@@ -187,7 +187,7 @@ pub struct HistoricalBalance {
 }
 
 /// Account holder(s) information.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Owner {
     /// A list of names associated with the account by the financial
     /// institution. These should always be the names of individuals, even for
@@ -227,7 +227,7 @@ pub struct Owner {
 }
 
 /// Details Phone number associated with an `Account`.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct PhoneNumber {
     /// The phone number.
     pub data: String,
@@ -243,7 +243,7 @@ pub struct PhoneNumber {
 }
 
 /// The type of phone number
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(untagged, rename_all = "snake_case")]
 #[allow(missing_docs)]
 pub enum PhoneNumberType {
@@ -263,7 +263,7 @@ pub enum PhoneNumberType {
 }
 
 /// An email address associated with this `Account`.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct EmailAddress {
     /// The email address.
     pub data: String,
@@ -278,7 +278,7 @@ pub struct EmailAddress {
 }
 
 /// The type of email account as described by the financial institution.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Clone, Copy, Debug)]
 #[serde(rename_all = "snake_case")]
 #[allow(missing_docs)]
 pub enum EmailAddressType {
@@ -288,7 +288,7 @@ pub enum EmailAddressType {
 }
 
 /// A physical address associated with the account by the financial institution.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Address {
     /// Data about the components comprising an address.
     data: AddressDetails,
@@ -299,7 +299,7 @@ pub struct Address {
 }
 
 /// The actual address details.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct AddressDetails {
     /// The full city name
     city: Option<String>,
@@ -323,7 +323,7 @@ pub struct AddressDetails {
 
 // TODO: add account sub-types; how do we handle ser/de?
 /// Account types.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Clone, Copy, Debug)]
 #[serde(rename_all = "snake_case")]
 pub enum AccountType {
     /// An account type holding cash, in which funds are deposited.
@@ -358,7 +358,7 @@ pub enum AccountType {
 
 /// The current verification status of an Auth Item initiated through Automated
 /// or Manual micro-deposits. Returned for Auth Items only.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Clone, Copy, Debug)]
 #[serde(rename_all = "snake_case")]
 pub enum VerificationStatus {
     /// The Item is pending automatic verification
@@ -381,7 +381,7 @@ pub enum VerificationStatus {
 }
 
 /// Options for the `balance` request.
-#[derive(Serialize, Default, Debug)]
+#[derive(Serialize, Default, Clone, Debug)]
 pub struct BalanceRequestOptions {
     /// A list of `account_ids` to retrieve for the Item.
     ///

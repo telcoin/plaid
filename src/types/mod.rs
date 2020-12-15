@@ -53,7 +53,7 @@ impl Serialize for Secret {
 
 /// API environments to differentiate between testing environments (`Sandbox`
 /// and `Development`) and live, billed, unrestricted API access (`Production`).
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Clone, Copy, Debug)]
 pub enum Environment {
     /// Sandbox environment.
     ///
@@ -121,7 +121,7 @@ impl fmt::Display for Environment {
 }
 
 /// Metadata about a requested `Item`.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Item {
     /// The Plaid Item ID. The `item_id` is always unique; linking the same
     /// account at the same institution twice will result in two Items with

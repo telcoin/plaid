@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 // TODO: clean API to encode invariants of `CreateLinkTokenRequestParameters`
 /// The parameters to a `create_link_token` request.
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Clone, Debug)]
 pub struct CreateLinkTokenRequestParameters {
     /// The name of your application, as it should be displayed in Link.
     pub client_name: String,
@@ -133,7 +133,7 @@ pub struct CreateLinkTokenRequestParameters {
 }
 
 /// The response from performing a `create_link_token` request.
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Clone, Debug)]
 pub struct CreateLinkTokenResponse {
     /// A `link_token`, which can be supplied to Link in order to initialize it
     /// and receive a public_token, which can be exchanged for an
@@ -152,7 +152,7 @@ pub struct CreateLinkTokenResponse {
 }
 
 /// The response from performing a `create_public_token` request.
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Clone, Debug)]
 pub struct CreatePublicTokenResponse {
     /// A `public_token` for the particular `Item` corresponding to the
     /// specified access_token
@@ -165,7 +165,7 @@ pub struct CreatePublicTokenResponse {
 }
 
 /// The response from performing an `exchange_public_token` request.
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Clone, Debug)]
 pub struct ExchangePublicTokenResponse {
     /// The access token associated with the Item data is being requested for.
     pub access_token: String,
@@ -181,7 +181,7 @@ pub struct ExchangePublicTokenResponse {
 }
 
 /// Supported languages.
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Clone, Copy, Debug)]
 #[serde(rename_all = "lowercase")]
 #[allow(missing_docs, non_camel_case_types)]
 pub enum SupportedLanguage {
@@ -194,7 +194,7 @@ pub enum SupportedLanguage {
 /// Supported countries in [ISO 3166-1 alpha-2] format.
 ///
 /// [ISO 3166-1 alpha-2]: https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Clone, Copy, Debug)]
 #[serde(rename_all = "UPPERCASE")]
 #[allow(missing_docs)]
 pub enum SupportedCountry {
@@ -209,7 +209,7 @@ pub enum SupportedCountry {
 
 /// An object specifying information about the end user who will be linking
 /// their account.
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Clone, Debug)]
 pub struct EndUser {
     /// A unique ID representing the end user.
     ///
@@ -224,7 +224,7 @@ pub struct EndUser {
 /// *Note*: `Balance` is not a valid value, the Balance product does not require
 /// explicit initalization and will automatically be initialized when any other
 /// product is initialized.
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Clone, Copy, Debug)]
 #[serde(rename_all = "snake_case")]
 #[allow(missing_docs)]
 pub enum SupportedProduct {
@@ -239,7 +239,7 @@ pub enum SupportedProduct {
 
 /// Options for initializing Link for use with the Payment Initiation
 /// (UK) product.
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Clone, Debug)]
 pub struct PaymentInitiationConfiguration {
     /// The `payment_id` provided by the `/payment_initiation/payment/create`
     /// endpoint.
