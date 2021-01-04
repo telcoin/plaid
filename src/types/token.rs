@@ -207,7 +207,7 @@ impl Default for SandboxCreatePublicTokenRequestOptions {
 
 /// The response from performing a `create_public_token` request.
 #[derive(Deserialize, Clone, Debug)]
-pub struct CreatePublicTokenResponse {
+pub struct SandboxCreatePublicTokenResponse {
     /// A `public_token` for the particular `Item` corresponding to the
     /// specified access_token
     pub public_token: String,

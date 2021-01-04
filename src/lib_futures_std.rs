@@ -78,7 +78,7 @@ impl Client {
     pub async fn sandbox_create_public_token(
         &self,
         request: &SandboxCreatePublicTokenRequest,
-    ) -> Result<CreatePublicTokenResponse, ReqwestError> {
+    ) -> Result<SandboxCreatePublicTokenResponse, ReqwestError> {
         // TODO: figure out a better way to do this...
         let mut body = json!(request);
         body["client_id"] = json!(&self.client_id);
