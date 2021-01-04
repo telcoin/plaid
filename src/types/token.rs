@@ -151,6 +151,60 @@ pub struct CreateLinkTokenResponse {
     pub expiration: chrono::DateTime<chrono::FixedOffset>,
 }
 
+/// The body for the `sandbox_create_public_token` request.
+#[derive(Serialize, Clone, Debug)]
+pub struct SandboxCreatePublicTokenRequest {
+    /// The ID of the institution the `Item` will be associated with
+    pub institution_id: String,
+
+    /// The products to initially pull for the `Item`.
+    ///
+    /// May be any products that the specified `institution_id` supports. This
+    /// array may not be empty.
+    pub initial_products: Vec<SupportedProduct>,
+
+    /// The options for configuring the `Item`.
+    pub options: SandboxCreatePublicTokenRequestOptions,
+}
+
+impl Default for SandboxCreatePublicTokenRequest {
+    fn default() -> Self {
+        Self {
+            institution_id: "ins_1".to_string(),
+            initial_products: vec![SupportedProduct::Auth, SupportedProduct::Identity],
+            options: SandboxCreatePublicTokenRequestOptions::default(),
+        }
+    }
+}
+
+/// The options for configuring the `Item`.
+#[derive(Serialize, Clone, Debug)]
+pub struct SandboxCreatePublicTokenRequestOptions {
+    /// Specify a webhook to associate with the new Item.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub webhook: Option<String>,
+
+    /// Test username to use for the creation of the `Sandbox` `Item`.
+    ///
+    /// Default: `user_good`  
+    pub override_username: String,
+
+    /// Test password to use for the creation of the `Sandbox` `Item`.
+    ///
+    /// Default: `pass_good`  
+    pub override_password: String,
+}
+
+impl Default for SandboxCreatePublicTokenRequestOptions {
+    fn default() -> Self {
+        Self {
+            webhook: None,
+            override_username: "user_good".to_string(),
+            override_password: "pass_good".to_string(),
+        }
+    }
+}
+
 /// The response from performing a `create_public_token` request.
 #[derive(Deserialize, Clone, Debug)]
 pub struct CreatePublicTokenResponse {

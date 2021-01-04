@@ -79,13 +79,12 @@ impl Client {
     #[allow(dead_code)]
     pub fn sandbox_create_public_token(
         &self,
+        request: &SandboxCreatePublicTokenRequest,
     ) -> impl Future<Item = CreatePublicTokenResponse, Error = ReqwestError> {
-        let body = json!({
-            "client_id": &self.client_id,
-            "secret": &self.secret,
-            "institution_id": "ins_1",
-            "initial_products": ["auth", "identity"]
-        });
+        // TODO: figure out a better way to do this...
+        let mut body = json!(request);
+        body["client_id"] = json!(&self.client_id);
+        body["secret"] = json!(&self.secret);
 
         self.client
             .post(&format!("{}/sandbox/public_token/create", self.url))
@@ -325,7 +324,7 @@ mod tests {
 
         // NOTE: we do this once so we don't burn any of our tokens
         let public_token = rt
-            .block_on(client.sandbox_create_public_token())?
+            .block_on(client.sandbox_create_public_token(&Default::default()))?
             .public_token;
         let token_response = rt.block_on(client.exchange_public_token(&public_token))?;
         let token = token_response.access_token;

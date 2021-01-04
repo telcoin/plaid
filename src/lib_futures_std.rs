@@ -77,13 +77,12 @@ impl Client {
     #[allow(dead_code)]
     pub async fn sandbox_create_public_token(
         &self,
+        request: &SandboxCreatePublicTokenRequest,
     ) -> Result<CreatePublicTokenResponse, ReqwestError> {
-        let body = json!({
-            "client_id": &self.client_id,
-            "secret": &self.secret,
-            "institution_id": "ins_1",
-            "initial_products": ["auth", "identity"]
-        });
+        // TODO: figure out a better way to do this...
+        let mut body = json!(request);
+        body["client_id"] = json!(&self.client_id);
+        body["secret"] = json!(&self.secret);
 
         self.client
             .post(&format!("{}/sandbox/public_token/create", self.url))
@@ -316,7 +315,10 @@ mod tests {
         let secret = dotenv::var("PLAID_SECRET")?;
         let client = Client::new(client_id, secret, Environment::Sandbox);
 
-        let public_token = client.sandbox_create_public_token().await?.public_token;
+        let public_token = client
+            .sandbox_create_public_token(&SandboxCreatePublicTokenRequest::default())
+            .await?
+            .public_token;
 
         let token = client
             .exchange_public_token(&public_token)
