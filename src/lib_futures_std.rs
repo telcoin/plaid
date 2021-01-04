@@ -309,78 +309,45 @@ impl Client {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use once_cell::sync::OnceCell;
     use std::error::Error;
-    use tokio::sync::Mutex;
 
-    static CLIENT: OnceCell<Client> = OnceCell::new();
-    static ACCESS_TOKEN: OnceCell<String> = OnceCell::new();
-    static CLIENT_IS_INITIALIZED: OnceCell<Mutex<bool>> = OnceCell::new();
+    async fn client_from_env() -> Result<(Client, String), Box<dyn Error>> {
+        let client_id = dotenv::var("PLAID_CLIENT_ID")?;
+        let secret = dotenv::var("PLAID_SECRET")?;
+        let client = Client::new(client_id, secret, Environment::Sandbox);
 
-    // adapted from https://users.rust-lang.org/t/any-alternative-to-using-await-with-lazy-static-macro-in-rust/44237/2
-    async fn client_from_env() -> Result<(&'static Client, &'static str), Box<dyn Error>> {
-        // this is racy, but that's OK: it's just a fast case
-        if let Some(client) = CLIENT.get() {
-            if let Some(token) = ACCESS_TOKEN.get() {
-                return Ok((client, token));
-            }
-        }
+        let public_token = client.sandbox_create_public_token().await?.public_token;
 
-        let is_initializing_mutex = CLIENT_IS_INITIALIZED.get_or_init(|| Mutex::new(false));
-        // wait if another task is currently initializing the client
-        let mut is_initialized = is_initializing_mutex.lock().await;
+        let token = client
+            .exchange_public_token(&public_token)
+            .await?
+            .access_token;
 
-        if !*is_initialized {
-            // no one else has initialized it yet, so initialize it
-
-            let client_id = dotenv::var("PLAID_CLIENT_ID")?;
-            let secret = dotenv::var("PLAID_SECRET")?;
-            let client = Client::new(client_id, secret, Environment::Sandbox);
-
-            // NOTE: we do this once so we don't burn any of our tokens
-            let public_token = client.sandbox_create_public_token().await?.public_token;
-            let token_response = client.exchange_public_token(&public_token).await?;
-
-            CLIENT
-                .set(client)
-                .ok() // so Client doesn't have to implement Debug
-                .expect("could not set CLIENT despite holding CLIENT_INITIALIZED lock");
-
-            ACCESS_TOKEN
-                .set(token_response.access_token)
-                .expect("could not set ACCESS_TOKEN despite holding CLIENT_INITIALIZED lock");
-
-            *is_initialized = true;
-            drop(is_initialized);
-        }
-
-        let client = CLIENT.get().ok_or("missing CLIENT")?;
-        let token = ACCESS_TOKEN.get().ok_or("missing ACCESS_TOKEN")?;
         Ok((client, token))
     }
 
     #[tokio::test]
     async fn can_get_accounts() {
         let (client, token) = client_from_env().await.unwrap();
-        client.accounts(token).await.unwrap();
+        client.accounts(&token).await.unwrap();
     }
 
     #[tokio::test]
     async fn can_get_balance() {
         let (client, token) = client_from_env().await.unwrap();
-        client.balance(token, Default::default()).await.unwrap();
+        client.balance(&token, Default::default()).await.unwrap();
     }
 
     #[tokio::test]
     async fn can_get_auth() {
         let (client, token) = client_from_env().await.unwrap();
-        client.auth(token, Default::default()).await.unwrap();
+        client.auth(&token, Default::default()).await.unwrap();
     }
 
     #[tokio::test]
     #[allow(clippy::unnecessary_operation)]
     async fn can_get_identity() {
         let (client, token) = client_from_env().await.unwrap();
-        &client.identity(token).await.unwrap().accounts[0].owners[0];
+        &client.identity(&token).await.unwrap().accounts[0].owners[0];
     }
 }
