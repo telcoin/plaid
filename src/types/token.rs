@@ -2,10 +2,10 @@ use serde::{Deserialize, Serialize};
 
 // TODO: make a `link` module?
 
-// TODO: clean API to encode invariants of `CreateLinkTokenRequestParameters`
-/// The parameters to a `create_link_token` request.
+// TODO: clean API to encode invariants of `CreateLinkTokenRequest`
+/// The body for the `create_link_token` request.
 #[derive(Serialize, Clone, Debug)]
-pub struct CreateLinkTokenRequestParameters {
+pub struct CreateLinkTokenRequest {
     /// The name of your application, as it should be displayed in Link.
     pub client_name: String,
 
