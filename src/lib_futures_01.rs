@@ -311,7 +311,6 @@ impl Client {
 #[cfg(test)]
 mod tests {
     use super::*;
-    // use futures01::future;
     use tokio01::runtime::Runtime;
 
     #[test]
