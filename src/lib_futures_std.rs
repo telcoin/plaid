@@ -166,6 +166,49 @@ impl Client {
             .await
     }
 
+    /// Create processor token
+    ///
+    /// [/processor/token/create]
+    ///
+    /// Used to create a token suitable for sending to one of Plaid's partners
+    /// to enable integrations. Note that Stripe partnerships use bank account
+    /// tokens instead; see [/processor/stripe/bank_account_token/create] for
+    /// creating tokens for use with Stripe integrations.
+    ///
+    /// The processor you are integrating with. Valid values are "achq",
+    /// "check", "checkbook", "circle", "drivewealth", "dwolla", "galileo",
+    /// "interactive_brokers", "lithic", "modern_treasury", "ocrolus",
+    /// "prime_trust", "rize", "sila_money", "svb_api", "unit", "vesta",
+    /// "vopay", "wyre"
+    ///
+    /// [/processor/token/create]: https://plaid.com/docs/api/processors/#processortokencreate
+    /// [/processor/stripe/bank_account_token/create]: https://plaid.com/docs/api/processors/#processorstripebank_account_tokencreate
+    #[allow(dead_code)]
+    pub async fn create_processor_token(
+        &self,
+        access_token: &str,
+        account_id: &str,
+        processor: &str,
+    ) -> Result<CreateProcessorTokenResponse, ReqwestError> {
+        // TODO: make this strongly typed?
+        let body = json!({
+            "client_id": &self.client_id,
+            "secret": &self.secret,
+            "access_token": access_token,
+            "account_id": account_id,
+            "processor": processor,
+        });
+
+        self.client
+            .post(&format!("{}/processor/token/create", self.url))
+            .json(&body)
+            .send()
+            .await?
+            .error_for_status()?
+            .json()
+            .await
+    }
+
     /// Retrieve accounts
     ///
     /// [/accounts/get]
@@ -351,5 +394,15 @@ mod tests {
     async fn can_get_identity() {
         let (client, token) = client_from_env().await.unwrap();
         &client.identity(&token).await.unwrap().accounts[0].owners[0];
+    }
+
+    #[tokio::test]
+    async fn can_create_processor_token() {
+        let (client, token) = client_from_env().await.unwrap();
+        let accounts = client.accounts(&token).await.unwrap();
+        client
+            .create_processor_token(&token, &accounts.accounts[0].account_id, "wyre")
+            .await
+            .unwrap();
     }
 }
