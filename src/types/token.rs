@@ -274,6 +274,32 @@ pub enum SupportedCountry {
     NL,
 }
 
+/// Supported payment processors.
+#[derive(Serialize, Clone, Copy, Debug)]
+#[serde(rename_all = "snake_case")]
+#[allow(missing_docs)]
+pub enum SupportedProcessor {
+    Achq,
+    Check,
+    Checkbook,
+    Circle,
+    Drivewealth,
+    Dwolla,
+    Galileo,
+    InteractiveBrokers,
+    Lithic,
+    ModernTreasury,
+    Ocrolus,
+    PrimeTrust,
+    Rize,
+    SilaMoney,
+    SvbApi,
+    Unit,
+    Vesta,
+    Vopay,
+    Wyre,
+}
+
 /// An object specifying information about the end user who will be linking
 /// their account.
 #[derive(Serialize, Clone, Debug)]

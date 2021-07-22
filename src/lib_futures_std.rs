@@ -188,7 +188,7 @@ impl Client {
         &self,
         access_token: &str,
         account_id: &str,
-        processor: &str,
+        processor: SupportedProcessor,
     ) -> Result<CreateProcessorTokenResponse, ReqwestError> {
         // TODO: make this strongly typed?
         let body = json!({
@@ -401,7 +401,11 @@ mod tests {
         let (client, token) = client_from_env().await.unwrap();
         let accounts = client.accounts(&token).await.unwrap();
         client
-            .create_processor_token(&token, &accounts.accounts[0].account_id, "wyre")
+            .create_processor_token(
+                &token,
+                &accounts.accounts[0].account_id,
+                SupportedProcessor::Wyre,
+            )
             .await
             .unwrap();
     }

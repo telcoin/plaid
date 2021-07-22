@@ -189,7 +189,7 @@ impl Client {
         &self,
         access_token: &str,
         account_id: &str,
-        processor: &str,
+        processor: SupportedProcessor,
     ) -> impl Future<Item = CreateProcessorTokenResponse, Error = ReqwestError> {
         // TODO: make this strongly typed?
         let body = json!({
