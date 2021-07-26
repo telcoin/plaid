@@ -234,6 +234,19 @@ pub struct ExchangePublicTokenResponse {
     pub request_id: String,
 }
 
+/// The response from performing an `create_processor_token` request.
+#[derive(Deserialize, Clone, Debug)]
+pub struct CreateProcessorTokenResponse {
+    /// The `processor_token` that can then be used by the Plaid partner to
+    /// make API requests.
+    pub processor_token: String,
+
+    /// A unique identifier for the request, which can be used for
+    /// troubleshooting. This identifier, like all Plaid identifiers, is case
+    /// sensitive.
+    pub request_id: String,
+}
+
 /// Supported languages.
 #[derive(Serialize, Clone, Copy, Debug)]
 #[serde(rename_all = "lowercase")]
@@ -259,6 +272,32 @@ pub enum SupportedCountry {
     GB,
     IE,
     NL,
+}
+
+/// Supported payment processors.
+#[derive(Serialize, Clone, Copy, Debug)]
+#[serde(rename_all = "snake_case")]
+#[allow(missing_docs)]
+pub enum SupportedProcessor {
+    Achq,
+    Check,
+    Checkbook,
+    Circle,
+    Drivewealth,
+    Dwolla,
+    Galileo,
+    InteractiveBrokers,
+    Lithic,
+    ModernTreasury,
+    Ocrolus,
+    PrimeTrust,
+    Rize,
+    SilaMoney,
+    SvbApi,
+    Unit,
+    Vesta,
+    Vopay,
+    Wyre,
 }
 
 /// An object specifying information about the end user who will be linking

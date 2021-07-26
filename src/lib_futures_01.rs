@@ -167,6 +167,48 @@ impl Client {
             .from_err()
     }
 
+    /// Create processor token
+    ///
+    /// [/processor/token/create]
+    ///
+    /// Used to create a token suitable for sending to one of Plaid's partners
+    /// to enable integrations. Note that Stripe partnerships use bank account
+    /// tokens instead; see [/processor/stripe/bank_account_token/create] for
+    /// creating tokens for use with Stripe integrations.
+    ///
+    /// The processor you are integrating with. Valid values are "achq",
+    /// "check", "checkbook", "circle", "drivewealth", "dwolla", "galileo",
+    /// "interactive_brokers", "lithic", "modern_treasury", "ocrolus",
+    /// "prime_trust", "rize", "sila_money", "svb_api", "unit", "vesta",
+    /// "vopay", "wyre"
+    ///
+    /// [/processor/token/create]: https://plaid.com/docs/api/processors/#processortokencreate
+    /// [/processor/stripe/bank_account_token/create]: https://plaid.com/docs/api/processors/#processorstripebank_account_tokencreate
+    #[allow(dead_code)]
+    pub fn create_processor_token(
+        &self,
+        access_token: &str,
+        account_id: &str,
+        processor: SupportedProcessor,
+    ) -> impl Future<Item = CreateProcessorTokenResponse, Error = ReqwestError> {
+        // TODO: make this strongly typed?
+        let body = json!({
+            "client_id": &self.client_id,
+            "secret": &self.secret,
+            "access_token": access_token,
+            "account_id": account_id,
+            "processor": processor,
+        });
+
+        self.client
+            .post(&format!("{}/processor/token/create", self.url))
+            .json(&body)
+            .send()
+            .and_then(|res| res.error_for_status())
+            .and_then(|mut res| res.json())
+            .from_err()
+    }
+
     /// Retrieve accounts
     ///
     /// [/accounts/get]
