@@ -1,6 +1,6 @@
 [package]
 name = "plaid"
-version = "0.1.1"
+version = "0.2.0"
 authors = ["William Myers <will@telco.in>"]
 edition = "2018"
 description = "Unofficial Rust client library for the Plaid API"
