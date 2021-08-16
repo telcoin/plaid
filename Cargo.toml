@@ -36,6 +36,6 @@ no-dev-version = true
 pre-release-commit-message = "chore: release v{{version}}"
 tag-message = "{{crate_name}} v{{version}}"
 pre-release-replacements = [
-    { file = "README.md", search = 'tag = "v[a-z0-9\\.-]+"', replace = 'tag = "v{{version}}"' },
-    { file = "CHANGELOG.md", search = 'Unreleased \(\d{4}-\d{2}-\d{2}\)', replace = "v{{version}} ({{date}})" },
+    { file = "README.md", search = 'tag = "v[a-z0-9\\.-]+"', replace = 'tag = "v{{version}}"', prerelease = true },
+    { file = "CHANGELOG.md", search = '## \[Unreleased\].*', replace = "### [v{{version}}](https://github.com/telcoin/plaid/compare/v{{prev_version}}...v{{version}}) ({{date}})", min = 0, prerelease = true },
 ]
