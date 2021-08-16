@@ -114,13 +114,12 @@ impl Client {
     #[allow(dead_code)]
     pub fn create_link_token(
         &self,
+        request: &CreateLinkTokenRequest,
     ) -> impl Future<Item = CreateLinkTokenResponse, Error = ReqwestError> {
-        let body = json!({
-            "client_id": &self.client_id,
-            "secret": &self.secret,
-            "institution_id": "ins_1",
-            "initial_products": ["auth", "identity"]
-        });
+        // TODO: figure out a better way to do this...
+        let mut body = json!(request);
+        body["client_id"] = json!(&self.client_id);
+        body["secret"] = json!(&self.secret);
 
         self.client
             .post(&format!("{}/link/token/create", self.url))

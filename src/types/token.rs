@@ -118,7 +118,7 @@ pub struct CreateLinkTokenRequest {
     /// institutions or accounts shown by the bank in the OAuth window.
     ///
     /// [Account schema]: https://plaid.com/docs/api/accounts#accounts-schema
-    pub account_filters: serde_json::Map<String, serde_json::Value>,
+    pub account_filters: Option<serde_json::Map<String, serde_json::Value>>,
 
     /// Used for supporting legacy custom initializers.
     #[deprecated = "only used for supporting legacy custom initializers"]
@@ -309,7 +309,7 @@ pub struct EndUser {
     /// Typically this will be a user ID number from your application.
     /// Personally identifiable information, such as an email address or phone
     /// number, should not be used in the `client_user_id`.
-    client_user_id: String,
+    pub client_user_id: String,
 }
 
 /// Plaid product supported by Link.

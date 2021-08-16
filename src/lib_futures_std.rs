@@ -111,13 +111,14 @@ impl Client {
     /// [/item/public_token/exchange]: https://plaid.com/docs/api/tokens/#itempublic_tokenexchange
     /// [main Link flow]: https://plaid.com/docs/link/#link-flow
     #[allow(dead_code)]
-    pub async fn create_link_token(&self) -> Result<CreateLinkTokenResponse, ReqwestError> {
-        let body = json!({
-            "client_id": &self.client_id,
-            "secret": &self.secret,
-            "institution_id": "ins_1",
-            "initial_products": ["auth", "identity"]
-        });
+    pub async fn create_link_token(
+        &self,
+        request: &CreateLinkTokenRequest,
+    ) -> Result<CreateLinkTokenResponse, ReqwestError> {
+        // TODO: figure out a better way to do this...
+        let mut body = json!(request);
+        body["client_id"] = json!(&self.client_id);
+        body["secret"] = json!(&self.secret);
 
         self.client
             .post(&format!("{}/link/token/create", self.url))
@@ -405,6 +406,34 @@ mod tests {
                 &token,
                 &accounts.accounts[0].account_id,
                 SupportedProcessor::Wyre,
+            )
+            .await
+            .unwrap();
+    }
+
+    #[tokio::test]
+    async fn can_create_link_token() {
+        let (client, _) = client_from_env().await.unwrap();
+        client
+            .create_link_token(
+                #[allow(deprecated)]
+                &CreateLinkTokenRequest {
+                    client_name: "My Client".to_string(),
+                    language: SupportedLanguage::en,
+                    country_codes: vec![SupportedCountry::US],
+                    user: EndUser {
+                        client_user_id: "01234567-89AB-CDEF-0123-456789ABCDEF".to_string(),
+                    },
+                    products: vec![SupportedProduct::Auth, SupportedProduct::Identity],
+                    webhook: None,
+                    access_token: None,
+                    link_customization_name: None,
+                    redirect_uri: None,
+                    android_package_name: None,
+                    account_filters: None,
+                    institution_id: None,
+                    payment_initiation: None,
+                },
             )
             .await
             .unwrap();
