@@ -1,5 +1,12 @@
 # Changelog
 
+## [Unreleased](https://github.com/telcoin/plaid/compare/v0.2.0...HEAD) (2021-08-16)
+
+### Features
+
+* make create_link_token send correct request (#3) 770c0f6
+
+
 ## [v0.2.0](https://github.com/telcoin/plaid/compare/v0.1.0...v0.2.0) (2021-08-16)
 
 ### ⚠ BREAKING CHANGE
