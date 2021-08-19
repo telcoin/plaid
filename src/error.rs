@@ -1,7 +1,10 @@
 use std::error::Error as StdError;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
+#[cfg(feature = "futures-std")]
 use reqwest::Error as ReqwestError;
+#[cfg(feature = "futures-01")]
+use reqwest09::Error as ReqwestError;
 use serde::Deserialize;
 
 /// Represents an error that can occur when making an API request.
