@@ -8,7 +8,7 @@ use futures01::Future;
 use reqwest09::{r#async::Client as ReqwestClient, StatusCode};
 use serde_json::json;
 
-use crate::{types::*, Error};
+use crate::{error::*, types::*};
 
 // TODO: add `Error` type and improve error handling
 // TODO: make `AccessToken` type to differentiate from `PublicToken` etc.

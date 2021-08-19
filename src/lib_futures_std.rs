@@ -6,8 +6,8 @@ use std::time::Duration;
 use reqwest::{Client as ReqwestClient, StatusCode};
 use serde_json::json;
 
+use crate::error::*;
 use crate::types::*;
-use crate::Error;
 
 // TODO: add `Error` type and improve error handling
 // TODO: make `AccessToken` type to differentiate from `PublicToken` etc.
@@ -376,9 +376,9 @@ impl Client {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::error::Error;
+    use std::error::Error as StdError;
 
-    async fn client_from_env() -> Result<(Client, String), Box<dyn Error>> {
+    async fn client_from_env() -> Result<(Client, String), Box<dyn StdError>> {
         let client_id = dotenv::var("PLAID_CLIENT_ID")?;
         let secret = dotenv::var("PLAID_SECRET")?;
         let client = Client::new(client_id, secret, Environment::Sandbox);
@@ -461,5 +461,26 @@ mod tests {
             )
             .await
             .unwrap();
+    }
+
+    #[tokio::test]
+    async fn can_handle_errors() {
+        let client = Client::new(
+            "BAD_CLIENT_ID".to_string(),
+            "BAD_SECRET".to_string(),
+            Environment::Sandbox,
+        );
+
+        let result = client
+            .sandbox_create_public_token(&SandboxCreatePublicTokenRequest::default())
+            .await;
+
+        assert!(matches!(
+            result,
+            Err(Error::Api(ApiError {
+                error_type: ErrorType::InvalidRequest,
+                ..
+            }))
+        ));
     }
 }
