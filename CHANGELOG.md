@@ -1,6 +1,13 @@
 # Changelog
 
-### [v0.3.0](https://github.com/telcoin/plaid/compare/v0.2.0...v0.3.0) (2021-08-16)
+## [Unreleased](https://github.com/telcoin/plaid/compare/v0.3.0...HEAD) (2021-08-20)
+
+### Features
+
+* parse API errors so they can be handled (#4) 05e0c1b
+
+
+## [v0.3.0](https://github.com/telcoin/plaid/compare/v0.2.0...v0.3.0) (2021-08-16)
 
 ### Features
 
