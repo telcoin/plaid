@@ -31,12 +31,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 "##
 )]
 
+pub use self::error::*;
 #[cfg(feature = "futures-01")]
 pub use self::lib_futures_01::*;
 #[cfg(feature = "futures-std")]
 pub use self::lib_futures_std::*;
 pub use self::types::*;
 
+mod error;
 #[cfg(feature = "futures-01")]
 mod lib_futures_01;
 #[cfg(feature = "futures-std")]

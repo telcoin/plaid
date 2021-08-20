@@ -3,12 +3,12 @@
 use std::env;
 use std::time::Duration;
 
+use futures01::future::{self, Either};
 use futures01::Future;
-use reqwest09::r#async::Client as ReqwestClient;
-use reqwest09::Error as ReqwestError;
+use reqwest09::{r#async::Client as ReqwestClient, StatusCode};
 use serde_json::json;
 
-use crate::types::*;
+use crate::{error::*, types::*};
 
 // TODO: add `Error` type and improve error handling
 // TODO: make `AccessToken` type to differentiate from `PublicToken` etc.
@@ -80,7 +80,7 @@ impl Client {
     pub fn sandbox_create_public_token(
         &self,
         request: &SandboxCreatePublicTokenRequest,
-    ) -> impl Future<Item = SandboxCreatePublicTokenResponse, Error = ReqwestError> {
+    ) -> impl Future<Item = SandboxCreatePublicTokenResponse, Error = Error> {
         // TODO: figure out a better way to do this...
         let mut body = json!(request);
         body["client_id"] = json!(&self.client_id);
@@ -90,9 +90,14 @@ impl Client {
             .post(&format!("{}/sandbox/public_token/create", self.url))
             .json(&body)
             .send()
-            .and_then(|res| res.error_for_status())
-            .and_then(|mut res| res.json())
             .from_err()
+            .and_then(|mut res| {
+                let status = res.status();
+                match status {
+                    StatusCode::OK => Either::A(res.json().from_err()),
+                    _ => Either::B(res.json().from_err().map(Error::Api).and_then(future::err)),
+                }
+            })
     }
 
     /// Create Link Token
@@ -115,7 +120,7 @@ impl Client {
     pub fn create_link_token(
         &self,
         request: &CreateLinkTokenRequest,
-    ) -> impl Future<Item = CreateLinkTokenResponse, Error = ReqwestError> {
+    ) -> impl Future<Item = CreateLinkTokenResponse, Error = Error> {
         // TODO: figure out a better way to do this...
         let mut body = json!(request);
         body["client_id"] = json!(&self.client_id);
@@ -125,9 +130,14 @@ impl Client {
             .post(&format!("{}/link/token/create", self.url))
             .json(&body)
             .send()
-            .and_then(|res| res.error_for_status())
-            .and_then(|mut res| res.json())
             .from_err()
+            .and_then(|mut res| {
+                let status = res.status();
+                match status {
+                    StatusCode::OK => Either::A(res.json().from_err()),
+                    _ => Either::B(res.json().from_err().map(Error::Api).and_then(future::err)),
+                }
+            })
     }
 
     /// Exchange a public token for an access token
@@ -149,7 +159,7 @@ impl Client {
     pub fn exchange_public_token(
         &self,
         public_token: &str,
-    ) -> impl Future<Item = ExchangePublicTokenResponse, Error = ReqwestError> {
+    ) -> impl Future<Item = ExchangePublicTokenResponse, Error = Error> {
         // TODO: make this strongly typed?
         let body = json!({
             "client_id": &self.client_id,
@@ -161,9 +171,14 @@ impl Client {
             .post(&format!("{}/item/public_token/exchange", self.url))
             .json(&body)
             .send()
-            .and_then(|res| res.error_for_status())
-            .and_then(|mut res| res.json())
             .from_err()
+            .and_then(|mut res| {
+                let status = res.status();
+                match status {
+                    StatusCode::OK => Either::A(res.json().from_err()),
+                    _ => Either::B(res.json().from_err().map(Error::Api).and_then(future::err)),
+                }
+            })
     }
 
     /// Create processor token
@@ -189,7 +204,7 @@ impl Client {
         access_token: &str,
         account_id: &str,
         processor: SupportedProcessor,
-    ) -> impl Future<Item = CreateProcessorTokenResponse, Error = ReqwestError> {
+    ) -> impl Future<Item = CreateProcessorTokenResponse, Error = Error> {
         // TODO: make this strongly typed?
         let body = json!({
             "client_id": &self.client_id,
@@ -203,9 +218,14 @@ impl Client {
             .post(&format!("{}/processor/token/create", self.url))
             .json(&body)
             .send()
-            .and_then(|res| res.error_for_status())
-            .and_then(|mut res| res.json())
             .from_err()
+            .and_then(|mut res| {
+                let status = res.status();
+                match status {
+                    StatusCode::OK => Either::A(res.json().from_err()),
+                    _ => Either::B(res.json().from_err().map(Error::Api).and_then(future::err)),
+                }
+            })
     }
 
     /// Retrieve accounts
@@ -221,7 +241,7 @@ impl Client {
     pub fn accounts(
         &self,
         access_token: &str,
-    ) -> impl Future<Item = AccountsResponse, Error = ReqwestError> {
+    ) -> impl Future<Item = AccountsResponse, Error = Error> {
         // TODO: make this strongly typed?
         let body = json!({
             "client_id": &self.client_id,
@@ -233,9 +253,14 @@ impl Client {
             .post(&format!("{}/accounts/get", self.url))
             .json(&body)
             .send()
-            .and_then(|res| res.error_for_status())
-            .and_then(|mut res| res.json())
             .from_err()
+            .and_then(|mut res| {
+                let status = res.status();
+                match status {
+                    StatusCode::OK => Either::A(res.json().from_err()),
+                    _ => Either::B(res.json().from_err().map(Error::Api).and_then(future::err)),
+                }
+            })
     }
 
     /// Fetch real-time balance data
@@ -256,7 +281,7 @@ impl Client {
         &self,
         access_token: &str,
         options: BalanceRequestOptions,
-    ) -> impl Future<Item = AccountsResponse, Error = ReqwestError> {
+    ) -> impl Future<Item = AccountsResponse, Error = Error> {
         // TODO: make this strongly typed?
         let body = json!({
             "client_id": &self.client_id,
@@ -269,9 +294,14 @@ impl Client {
             .post(&format!("{}/accounts/balance/get", self.url))
             .json(&body)
             .send()
-            .and_then(|res| res.error_for_status())
-            .and_then(|mut res| res.json())
             .from_err()
+            .and_then(|mut res| {
+                let status = res.status();
+                match status {
+                    StatusCode::OK => Either::A(res.json().from_err()),
+                    _ => Either::B(res.json().from_err().map(Error::Api).and_then(future::err)),
+                }
+            })
     }
 
     /// Fetch auth data
@@ -294,7 +324,7 @@ impl Client {
         &self,
         access_token: &str,
         options: AuthRequestOptions,
-    ) -> impl Future<Item = AuthResponse, Error = ReqwestError> {
+    ) -> impl Future<Item = AuthResponse, Error = Error> {
         // TODO: make this strongly typed?
         let body = json!({
             "client_id": &self.client_id,
@@ -307,9 +337,14 @@ impl Client {
             .post(&format!("{}/auth/get", self.url))
             .json(&body)
             .send()
-            .and_then(|res| res.error_for_status())
-            .and_then(|mut res| res.json())
             .from_err()
+            .and_then(|mut res| {
+                let status = res.status();
+                match status {
+                    StatusCode::OK => Either::A(res.json().from_err()),
+                    _ => Either::B(res.json().from_err().map(Error::Api).and_then(future::err)),
+                }
+            })
     }
 
     /// Fetch identity data
@@ -331,7 +366,7 @@ impl Client {
     pub fn identity(
         &self,
         access_token: &str,
-    ) -> impl Future<Item = AccountsResponse, Error = ReqwestError> {
+    ) -> impl Future<Item = AccountsResponse, Error = Error> {
         // TODO: make this strongly typed?
         let body = json!({
             "client_id": &self.client_id,
@@ -343,9 +378,14 @@ impl Client {
             .post(&format!("{}/identity/get", self.url))
             .json(&body)
             .send()
-            .and_then(|res| res.error_for_status())
-            .and_then(|mut res| res.json())
             .from_err()
+            .and_then(|mut res| {
+                let status = res.status();
+                match status {
+                    StatusCode::OK => Either::A(res.json().from_err()),
+                    _ => Either::B(res.json().from_err().map(Error::Api).and_then(future::err)),
+                }
+            })
     }
 }
 

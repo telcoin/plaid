@@ -3,10 +3,10 @@
 use std::env;
 use std::time::Duration;
 
-use reqwest::Client as ReqwestClient;
-use reqwest::Error as ReqwestError;
+use reqwest::{Client as ReqwestClient, StatusCode};
 use serde_json::json;
 
+use crate::error::*;
 use crate::types::*;
 
 // TODO: add `Error` type and improve error handling
@@ -78,20 +78,23 @@ impl Client {
     pub async fn sandbox_create_public_token(
         &self,
         request: &SandboxCreatePublicTokenRequest,
-    ) -> Result<SandboxCreatePublicTokenResponse, ReqwestError> {
+    ) -> Result<SandboxCreatePublicTokenResponse, Error> {
         // TODO: figure out a better way to do this...
         let mut body = json!(request);
         body["client_id"] = json!(&self.client_id);
         body["secret"] = json!(&self.secret);
 
-        self.client
+        let response = self
+            .client
             .post(&format!("{}/sandbox/public_token/create", self.url))
             .json(&body)
             .send()
-            .await?
-            .error_for_status()?
-            .json()
-            .await
+            .await?;
+
+        match response.status() {
+            StatusCode::OK => Ok(response.json().await?),
+            _ => Err(Error::Api(response.json().await?)),
+        }
     }
 
     /// Create Link Token
@@ -114,20 +117,23 @@ impl Client {
     pub async fn create_link_token(
         &self,
         request: &CreateLinkTokenRequest,
-    ) -> Result<CreateLinkTokenResponse, ReqwestError> {
+    ) -> Result<CreateLinkTokenResponse, Error> {
         // TODO: figure out a better way to do this...
         let mut body = json!(request);
         body["client_id"] = json!(&self.client_id);
         body["secret"] = json!(&self.secret);
 
-        self.client
+        let response = self
+            .client
             .post(&format!("{}/link/token/create", self.url))
             .json(&body)
             .send()
-            .await?
-            .error_for_status()?
-            .json()
-            .await
+            .await?;
+
+        match response.status() {
+            StatusCode::OK => Ok(response.json().await?),
+            _ => Err(Error::Api(response.json().await?)),
+        }
     }
 
     /// Exchange a public token for an access token
@@ -149,7 +155,7 @@ impl Client {
     pub async fn exchange_public_token(
         &self,
         public_token: &str,
-    ) -> Result<ExchangePublicTokenResponse, ReqwestError> {
+    ) -> Result<ExchangePublicTokenResponse, Error> {
         // TODO: make this strongly typed?
         let body = json!({
             "client_id": &self.client_id,
@@ -157,14 +163,17 @@ impl Client {
             "public_token": public_token,
         });
 
-        self.client
+        let response = self
+            .client
             .post(&format!("{}/item/public_token/exchange", self.url))
             .json(&body)
             .send()
-            .await?
-            .error_for_status()?
-            .json()
-            .await
+            .await?;
+
+        match response.status() {
+            StatusCode::OK => Ok(response.json().await?),
+            _ => Err(Error::Api(response.json().await?)),
+        }
     }
 
     /// Create processor token
@@ -190,7 +199,7 @@ impl Client {
         access_token: &str,
         account_id: &str,
         processor: SupportedProcessor,
-    ) -> Result<CreateProcessorTokenResponse, ReqwestError> {
+    ) -> Result<CreateProcessorTokenResponse, Error> {
         // TODO: make this strongly typed?
         let body = json!({
             "client_id": &self.client_id,
@@ -200,14 +209,17 @@ impl Client {
             "processor": processor,
         });
 
-        self.client
+        let response = self
+            .client
             .post(&format!("{}/processor/token/create", self.url))
             .json(&body)
             .send()
-            .await?
-            .error_for_status()?
-            .json()
-            .await
+            .await?;
+
+        match response.status() {
+            StatusCode::OK => Ok(response.json().await?),
+            _ => Err(Error::Api(response.json().await?)),
+        }
     }
 
     /// Retrieve accounts
@@ -220,7 +232,7 @@ impl Client {
     ///
     /// [/accounts/get]: https://plaid.com/docs/api/accounts/#accountsget
     #[allow(dead_code)]
-    pub async fn accounts(&self, access_token: &str) -> Result<AccountsResponse, ReqwestError> {
+    pub async fn accounts(&self, access_token: &str) -> Result<AccountsResponse, Error> {
         // TODO: make this strongly typed?
         let body = json!({
             "client_id": &self.client_id,
@@ -228,14 +240,17 @@ impl Client {
             "access_token": access_token,
         });
 
-        self.client
+        let response = self
+            .client
             .post(&format!("{}/accounts/get", self.url))
             .json(&body)
             .send()
-            .await?
-            .error_for_status()?
-            .json()
-            .await
+            .await?;
+
+        match response.status() {
+            StatusCode::OK => Ok(response.json().await?),
+            _ => Err(Error::Api(response.json().await?)),
+        }
     }
 
     /// Fetch real-time balance data
@@ -256,7 +271,7 @@ impl Client {
         &self,
         access_token: &str,
         options: BalanceRequestOptions,
-    ) -> Result<AccountsResponse, ReqwestError> {
+    ) -> Result<AccountsResponse, Error> {
         // TODO: make this strongly typed?
         let body = json!({
             "client_id": &self.client_id,
@@ -265,14 +280,17 @@ impl Client {
             "options": options,
         });
 
-        self.client
+        let response = self
+            .client
             .post(&format!("{}/accounts/balance/get", self.url))
             .json(&body)
             .send()
-            .await?
-            .error_for_status()?
-            .json()
-            .await
+            .await?;
+
+        match response.status() {
+            StatusCode::OK => Ok(response.json().await?),
+            _ => Err(Error::Api(response.json().await?)),
+        }
     }
 
     /// Fetch auth data
@@ -295,7 +313,7 @@ impl Client {
         &self,
         access_token: &str,
         options: AuthRequestOptions,
-    ) -> Result<AuthResponse, ReqwestError> {
+    ) -> Result<AuthResponse, Error> {
         // TODO: make this strongly typed?
         let body = json!({
             "client_id": &self.client_id,
@@ -304,14 +322,17 @@ impl Client {
             "options": options,
         });
 
-        self.client
+        let response = self
+            .client
             .post(&format!("{}/auth/get", self.url))
             .json(&body)
             .send()
-            .await?
-            .error_for_status()?
-            .json()
-            .await
+            .await?;
+
+        match response.status() {
+            StatusCode::OK => Ok(response.json().await?),
+            _ => Err(Error::Api(response.json().await?)),
+        }
     }
 
     /// Fetch identity data
@@ -330,7 +351,7 @@ impl Client {
     ///
     /// [/identity/get]: https://plaid.com/docs/api/products/#identityget
     #[allow(dead_code)]
-    pub async fn identity(&self, access_token: &str) -> Result<AccountsResponse, ReqwestError> {
+    pub async fn identity(&self, access_token: &str) -> Result<AccountsResponse, Error> {
         // TODO: make this strongly typed?
         let body = json!({
             "client_id": &self.client_id,
@@ -338,23 +359,26 @@ impl Client {
             "access_token": access_token,
         });
 
-        self.client
+        let response = self
+            .client
             .post(&format!("{}/identity/get", self.url))
             .json(&body)
             .send()
-            .await?
-            .error_for_status()?
-            .json()
-            .await
+            .await?;
+
+        match response.status() {
+            StatusCode::OK => Ok(response.json().await?),
+            _ => Err(Error::Api(response.json().await?)),
+        }
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::error::Error;
+    use std::error::Error as StdError;
 
-    async fn client_from_env() -> Result<(Client, String), Box<dyn Error>> {
+    async fn client_from_env() -> Result<(Client, String), Box<dyn StdError>> {
         let client_id = dotenv::var("PLAID_CLIENT_ID")?;
         let secret = dotenv::var("PLAID_SECRET")?;
         let client = Client::new(client_id, secret, Environment::Sandbox);
@@ -437,5 +461,26 @@ mod tests {
             )
             .await
             .unwrap();
+    }
+
+    #[tokio::test]
+    async fn can_handle_errors() {
+        let client = Client::new(
+            "BAD_CLIENT_ID".to_string(),
+            "BAD_SECRET".to_string(),
+            Environment::Sandbox,
+        );
+
+        let result = client
+            .sandbox_create_public_token(&SandboxCreatePublicTokenRequest::default())
+            .await;
+
+        assert!(matches!(
+            result,
+            Err(Error::Api(ApiError {
+                error_type: ErrorType::InvalidRequest,
+                ..
+            }))
+        ));
     }
 }
