@@ -126,4 +126,8 @@ pub enum ErrorType {
 
     /// Occur when there is an error in OAuth authentication.
     OauthError,
+
+    /// Unknown or all other errors.
+    #[serde(other)]
+    Unknown,
 }
