@@ -1,6 +1,6 @@
 [package]
 name = "plaid"
-version = "0.4.0"
+version = "0.5.0"
 authors = ["William Myers <will@telco.in>"]
 edition = "2018"
 description = "Unofficial Rust client library for the Plaid API"
@@ -18,18 +18,18 @@ rustls-tls = ["reqwest/rustls-tls"]
 
 [dependencies]
 chrono = { version = "0.4", features = ["serde"] }
-futures01 = { version = "0.1", package = "futures", optional = true }
-reqwest = { version = "0.10", features = ["json", "gzip"], optional = true }
-reqwest09 = { version = "0.9", package = "reqwest", optional = true }
-secrecy = "0.7"
+futures01 = { version = "0.3", package = "futures", optional = true }
+reqwest = { version = "0.11", features = ["json", "gzip"], optional = true }
+reqwest09 = { version = "0.11", package = "reqwest", optional = true }
+secrecy = "0.8"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 
 [dev-dependencies]
 dotenv = "0.15.0"
 once_cell = "1.4.1"
-tokio = { version = "0.2", features = ["macros"] }
-tokio01 = { version = "0.1", package = "tokio" }
+tokio = { version = "1.17", features = ["macros"] }
+tokio01 = { version = "1.17", package = "tokio" }
 
 [package.metadata.release]
 no-dev-version = true
