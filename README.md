@@ -10,8 +10,8 @@ An unofficial Rust client library for the [Plaid API].
 
    ```toml
    [dependencies]
-   plaid = { git = "https://github.com/telcoin/plaid.git", tag = "v0.4.0" }
-   tokio = { version = "0.2", features = ["full"] }
+   plaid = { git = "https://github.com/telcoin/plaid.git", tag = "v0.5.0" }
+   tokio = { version = "1.17", features = ["full"] }
    ```
 
 1. Obtain your API credentials from: https://dashboard.plaid.com/team/keys

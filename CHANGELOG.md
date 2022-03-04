@@ -1,5 +1,11 @@
 # Changelog
 
+### [v0.5.0](https://github.com/telcoin/plaid/compare/v0.4.0...v0.5.0) (2021-08-20)
+
+### Features
+
+* upgrade dependencies (tokio now at 1.17)
+
 ### [v0.4.0](https://github.com/telcoin/plaid/compare/v0.3.0...v0.4.0) (2021-08-20)
 
 ### Features
