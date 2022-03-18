@@ -10,7 +10,7 @@ An unofficial Rust client library for the [Plaid API].
 
    ```toml
    [dependencies]
-   plaid = { git = "https://github.com/telcoin/plaid.git", tag = "v0.5.1" }
+   plaid = { git = "https://github.com/telcoin/plaid.git", tag = "v0.6.0" }
    tokio = { version = "1", features = ["full"] }
    ```
 

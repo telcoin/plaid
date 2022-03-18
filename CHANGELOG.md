@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased](https://github.com/telcoin/plaid/compare/v0.5.1...HEAD) (2022-03-18)
+### [v0.6.0](https://github.com/telcoin/plaid/compare/v0.5.1...v0.6.0) (2022-03-17)
 
 
 ### Features
