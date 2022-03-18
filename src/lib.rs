@@ -48,7 +48,6 @@ mod types;
 /// **[Plaid](https://plaid.com/docs) API client**.
 ///
 /// See official documentation at: [https://plaid.com/docs](https://plaid.com/docs).
-#[allow(dead_code)]
 #[derive(Clone, Debug)]
 pub struct Client {
     client_id: String,
@@ -59,7 +58,6 @@ pub struct Client {
 
 impl Client {
     /// Creates a new `Client`.
-    #[allow(dead_code)]
     pub fn new<C, S>(client_id: C, secret: S, environment: Environment) -> Client
     where
         C: Into<String>,
@@ -80,7 +78,6 @@ impl Client {
     /// - `PLAID_CLIENT_ID`
     /// - `PLAID_SECRET`
     /// - `PLAID_ENVIRONMENT`
-    #[allow(dead_code)]
     pub fn from_env() -> Result<Client, Box<dyn std::error::Error>> {
         let client = Client::new(
             env::var("PLAID_CLIENT_ID")?,
@@ -105,7 +102,6 @@ impl Client {
     /// [/sandbox/public_token/create]: https://plaid.com/docs/api/sandbox/#sandboxpublic_tokencreate
     /// [/item/public_token/exchange]: https://plaid.com/docs/api/tokens/#itempublic_tokenexchange
     /// [`user_custom`]: https://plaid.com/docs/sandbox/user-custom/
-    #[allow(dead_code)]
     pub async fn sandbox_create_public_token(
         &self,
         request: &SandboxCreatePublicTokenRequest,
@@ -144,7 +140,6 @@ impl Client {
     /// [/link/token/create]: https://plaid.com/docs/api/tokens/#linktokencreate
     /// [/item/public_token/exchange]: https://plaid.com/docs/api/tokens/#itempublic_tokenexchange
     /// [main Link flow]: https://plaid.com/docs/link/#link-flow
-    #[allow(dead_code)]
     pub async fn create_link_token(
         &self,
         request: &CreateLinkTokenRequest,
@@ -182,7 +177,6 @@ impl Client {
     ///
     /// [/item/public_token/exchange]: https://plaid.com/docs/api/tokens/#itempublic_tokenexchange
     /// [/item/get]: https://plaid.com/docs/api/items/#itemget
-    #[allow(dead_code)]
     pub async fn exchange_public_token(
         &self,
         public_token: &str,
@@ -224,7 +218,6 @@ impl Client {
     ///
     /// [/processor/token/create]: https://plaid.com/docs/api/processors/#processortokencreate
     /// [/processor/stripe/bank_account_token/create]: https://plaid.com/docs/api/processors/#processorstripebank_account_tokencreate
-    #[allow(dead_code)]
     pub async fn create_processor_token(
         &self,
         access_token: &str,
@@ -262,7 +255,6 @@ impl Client {
     /// that are not closed and are capable of carrying a balance.
     ///
     /// [/accounts/get]: https://plaid.com/docs/api/accounts/#accountsget
-    #[allow(dead_code)]
     pub async fn accounts(&self, access_token: &str) -> Result<AccountsResponse, Error> {
         // TODO: make this strongly typed?
         let body = json!({
@@ -297,7 +289,6 @@ impl Client {
     /// product that can be used to initialize Link.
     ///
     /// [/accounts/balance/get]: https://plaid.com/docs/api/products/#accountsbalanceget
-    #[allow(dead_code)]
     pub async fn balance(
         &self,
         access_token: &str,
@@ -339,7 +330,6 @@ impl Client {
     /// data.
     ///
     /// [/auth/get]: https://plaid.com/docs/api/products/#authget
-    #[allow(dead_code)]
     pub async fn auth(
         &self,
         access_token: &str,
@@ -381,7 +371,6 @@ impl Client {
     /// data.
     ///
     /// [/identity/get]: https://plaid.com/docs/api/products/#identityget
-    #[allow(dead_code)]
     pub async fn identity(&self, access_token: &str) -> Result<AccountsResponse, Error> {
         // TODO: make this strongly typed?
         let body = json!({
