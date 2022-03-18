@@ -1,10 +1,7 @@
 use std::error::Error as StdError;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
-#[cfg(feature = "futures-std")]
 use reqwest::Error as ReqwestError;
-#[cfg(feature = "futures-01")]
-use reqwest09::Error as Reqwest09Error;
 use serde::Deserialize;
 
 /// Represents an error that can occur when making an API request.
@@ -14,25 +11,12 @@ pub enum Error {
     Api(ApiError),
 
     /// An error that ocurred during transport (using "futures-std" feature)
-    #[cfg(feature = "futures-std")]
     TransportStd(ReqwestError),
-
-    /// An error that ocurred during transport (using "futures-01" feature)
-    #[cfg(feature = "futures-01")]
-    Transport01(Reqwest09Error),
 }
 
-#[cfg(feature = "futures-std")]
 impl From<ReqwestError> for Error {
     fn from(error: ReqwestError) -> Self {
         Error::TransportStd(error)
-    }
-}
-
-#[cfg(feature = "futures-01")]
-impl From<Reqwest09Error> for Error {
-    fn from(error: Reqwest09Error) -> Self {
-        Error::Transport01(error)
     }
 }
 

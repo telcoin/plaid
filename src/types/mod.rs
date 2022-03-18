@@ -4,12 +4,11 @@ use std::convert::TryFrom;
 use std::fmt;
 use std::str::FromStr;
 
+pub use account::*;
+pub use auth::*;
 use secrecy::{ExposeSecret, SecretString};
 use serde::ser::Serializer;
 use serde::{Deserialize, Serialize};
-
-pub use account::*;
-pub use auth::*;
 pub use token::*;
 
 mod account;
