@@ -49,6 +49,7 @@ mod types;
 ///
 /// See official documentation at: [https://plaid.com/docs](https://plaid.com/docs).
 #[allow(dead_code)]
+#[derive(Clone, Debug)]
 pub struct Client {
     client_id: String,
     secret: Secret,
