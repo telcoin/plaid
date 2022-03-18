@@ -1,6 +1,15 @@
 # Changelog
 
-### [v0.5.1](https://github.com/telcoin/plaid/compare/v0.5.0...v0.5.1) (2022-03-17)
+## [Unreleased](https://github.com/telcoin/plaid/compare/v0.5.1...HEAD) (2022-03-18)
+
+
+### Features
+
+* derive Clone and Debug for Client
+ 95eef4d
+
+
+### [v0.5.1](https://github.com/telcoin/plaid/compare/v0.5.0...v0.5.1) (2022-03-18)
 
 
 ## [v0.5.0](https://github.com/telcoin/plaid/compare/v0.4.0...v0.5.0) (2022-03-18)
