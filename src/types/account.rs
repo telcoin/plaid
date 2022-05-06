@@ -381,7 +381,7 @@ pub enum VerificationStatus {
 }
 
 /// Options for the `balance` request.
-#[derive(Serialize, Default, Clone, Debug)]
+#[derive(Serialize, Deserialize, Default, Clone, Debug)]
 pub struct BalanceRequestOptions {
     /// A list of `account_ids` to retrieve for the Item.
     ///

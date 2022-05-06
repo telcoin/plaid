@@ -2,7 +2,7 @@ use std::error::Error as StdError;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
 use reqwest::Error as ReqwestError;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 /// Represents an error that can occur when making an API request.
 #[derive(Debug)]
@@ -29,7 +29,7 @@ impl Display for Error {
 }
 
 /// See [Error Schema](https://plaid.com/docs/errors/#error-schema)
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ApiError {
     /// A broad categorization of the error. Safe for programatic use.
     pub error_type: ErrorType,
@@ -59,7 +59,7 @@ pub struct ApiError {
 }
 
 /// See [Error Type](https://plaid.com/docs/errors/#Error-error-type)
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Deserialize)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum ErrorType {
     /// Occur when an Item may be invalid or not supported on Plaid's platform.
