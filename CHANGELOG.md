@@ -1,6 +1,15 @@
 # Changelog
 
-### [v0.6.0](https://github.com/telcoin/plaid/compare/v0.5.1...v0.6.0) (2022-03-17)
+## [Unreleased](https://github.com/telcoin/plaid/compare/v0.6.0...HEAD) (2022-05-06)
+
+
+### Features
+
+* ensure all types are serialize & deserialize
+ a22268a
+
+
+## [v0.6.0](https://github.com/telcoin/plaid/compare/v0.5.1...v0.6.0) (2022-03-18)
 
 
 ### Features
