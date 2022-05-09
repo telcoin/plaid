@@ -35,6 +35,7 @@ use serde_json::json;
 
 pub use self::error::*;
 pub use self::types::*;
+pub use self::webhook::*;
 
 mod error;
 mod types;
