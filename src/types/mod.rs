@@ -4,18 +4,21 @@ use std::convert::TryFrom;
 use std::fmt;
 use std::str::FromStr;
 
-use secrecy::{ExposeSecret, SecretString};
+pub use secrecy::{ExposeSecret, SecretString};
 use serde::ser::Serializer;
 use serde::{Deserialize, Serialize};
 
 pub use account::*;
 pub use auth::*;
+pub use item::*;
 pub use token::*;
 
 mod account;
 mod auth;
+mod item;
 pub(crate) mod serde_utils;
 mod token;
+pub mod webhook;
 
 /// A [secure] representation of a [Plaid API secret].
 ///
