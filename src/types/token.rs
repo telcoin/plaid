@@ -336,5 +336,5 @@ pub enum SupportedProduct {
 pub struct PaymentInitiationConfiguration {
     /// The `payment_id` provided by the `/payment_initiation/payment/create`
     /// endpoint.
-    payment_id: String,
+    pub payment_id: String,
 }

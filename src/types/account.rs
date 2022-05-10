@@ -291,34 +291,34 @@ pub enum EmailAddressType {
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Address {
     /// Data about the components comprising an address.
-    data: AddressDetails,
+    pub data: AddressDetails,
 
     /// When `true`, identifies the address as the primary address on an
     /// account.
-    primary: Option<bool>,
+    pub primary: Option<bool>,
 }
 
 /// The actual address details.
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct AddressDetails {
     /// The full city name
-    city: Option<String>,
+    pub city: Option<String>,
 
     /// The region or state Example: `"NC"`
-    region: Option<String>,
+    pub region: Option<String>,
 
     /// The full street address Example: `"564 Main Street, APT 15"`
-    street: String,
+    pub street: String,
 
     /// The postal code
-    postal_code: Option<String>,
+    pub postal_code: Option<String>,
 
     // TODO: this is not optional according to the docs, but it is `null` in test data
     // TODO: make country an enum/use crate
     /// The [ISO 3166-1 alpha-2] country code
     ///
     /// [ISO 3166-1 alpha-2]: https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2
-    country: Option<String>,
+    pub country: Option<String>,
 }
 
 // TODO: add account sub-types; how do we handle ser/de?
@@ -388,5 +388,5 @@ pub struct BalanceRequestOptions {
     /// *Note*: An error will be returned if a provided `account_id` is not
     /// associated with the Item.
     #[serde(default, with = "super::serde_utils::default_on_null")]
-    account_ids: Vec<String>,
+    pub account_ids: Vec<String>,
 }
