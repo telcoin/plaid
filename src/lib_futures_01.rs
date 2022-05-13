@@ -8,6 +8,7 @@ use futures01::Future;
 use reqwest09::{r#async::Client as ReqwestClient, StatusCode};
 use serde_json::json;
 
+use crate::webhook::WebhookUpdateResponse;
 use crate::{error::*, types::*};
 
 // TODO: add `Error` type and improve error handling
@@ -376,6 +377,41 @@ impl Client {
 
         self.client
             .post(&format!("{}/identity/get", self.url))
+            .json(&body)
+            .send()
+            .from_err()
+            .and_then(|mut res| {
+                let status = res.status();
+                match status {
+                    StatusCode::OK => Either::A(res.json().from_err()),
+                    _ => Either::B(res.json().from_err().map(Error::Api).and_then(future::err)),
+                }
+            })
+    }
+
+    /// Update webhook callback URL
+    ///
+    /// [/item/webhook/update]
+    ///
+    /// Update the webhook URL associated with an Item. This request triggers a
+    /// WEBHOOK_UPDATE_ACKNOWLEDGED webhook to the newly specified webhook URL.
+    ///
+    /// [/item/webhook/update]: https://plaid.com/docs/api/items/#itemwebhookupdate
+    pub fn update_webhook(
+        &self,
+        access_token: &str,
+        webhook_url: &str,
+    ) -> impl Future<Item = WebhookUpdateResponse, Error = Error> {
+        // TODO: make this strongly typed?
+        let body = json!({
+            "client_id": &self.client_id,
+            "secret": &self.secret,
+            "access_token": access_token,
+            "webhook": webhook_url
+        });
+
+        self.client
+            .post(&format!("{}/item/webhook/update", self.url))
             .json(&body)
             .send()
             .from_err()

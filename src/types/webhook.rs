@@ -2,6 +2,13 @@
 
 use serde::{Deserialize, Serialize};
 
+/// The response from performing an `update_webhook` request
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct WebhookUpdateResponse {
+    item: super::Item,
+    request_id: String,
+}
+
 /// A broad categorization of the error. Safe for programmatic use.
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
