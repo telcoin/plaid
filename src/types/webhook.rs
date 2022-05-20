@@ -100,3 +100,38 @@ pub struct Webhook {
     /// Error fields will be `null` if no error has occurred.
     pub error: Option<WebhookError>,
 }
+
+/// Module containing features for verifying webhooks
+#[cfg(feature = "webhook-verification")]
+pub mod verification {
+    use base64::decode_config;
+    use jsonwebtoken::jwk;
+    use openssl::bn::BigNum;
+    use serde::{Deserialize, Serialize};
+
+    use crate::Error;
+
+    /// Response to the `/webhook_verification/get` request
+    #[derive(Serialize, Deserialize, Debug)]
+    pub struct WebhookVerificationResponse {
+        /// The JWK (JSON web key)
+        pub key: jwk::Jwk,
+        /// ID of the unique request
+        pub request_id: String,
+    }
+
+    /// The JWT claims that Plaid will provide
+    #[derive(Serialize, Deserialize, Debug)]
+    pub struct Claims {
+        /// Issued At Time
+        pub iat: u64,
+        /// SHA256 of the webhook body
+        pub request_body_sha256: String,
+    }
+
+    pub(crate) fn string_to_big_num(val: &str) -> Result<BigNum, Error> {
+        let b64 =
+            decode_config(val, base64::URL_SAFE_NO_PAD).map_err(|_| Error::WebhookVerification)?;
+        Ok(BigNum::from_slice(&b64).map_err(|_| Error::WebhookVerification)?)
+    }
+}

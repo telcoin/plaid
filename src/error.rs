@@ -12,7 +12,19 @@ pub enum Error {
 
     /// An error that ocurred during transport (using "futures-std" feature)
     TransportStd(ReqwestError),
+
+    /// An error that occured while performing webhok verification
+    #[cfg(feature = "webhook-verification")]
+    WebhookVerification, //(WebhookVerificationError),
 }
+
+// #[derive(Debug)]
+// #[cfg(feature = "webhook-verification")]
+// pub enum WebhookVerificationError {
+//     Jwt(JwtError),
+//     OpenSsl,
+//     Other(Box<dyn std::error::Error>),
+// }
 
 impl From<ReqwestError> for Error {
     fn from(error: ReqwestError) -> Self {
