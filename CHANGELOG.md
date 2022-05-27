@@ -1,5 +1,14 @@
 # Changelog
 
+## [Unreleased](https://github.com/telcoin/plaid/compare/v0.8.0...HEAD) (2022-05-27)
+
+
+### Features
+
+* add min datetime to balance request
+ 6969eda
+
+
 ## [v0.8.0](https://github.com/telcoin/plaid/compare/v0.7.0...v0.8.0) (2022-05-27)
 
 
