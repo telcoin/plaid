@@ -35,6 +35,7 @@ use serde_json::json;
 
 pub use self::error::*;
 pub use self::types::*;
+pub use self::webhook::*;
 
 mod error;
 mod types;
@@ -382,6 +383,40 @@ impl Client {
         let response = self
             .client
             .post(&format!("{}/identity/get", self.url))
+            .json(&body)
+            .send()
+            .await?;
+
+        match response.status() {
+            StatusCode::OK => Ok(response.json().await?),
+            _ => Err(Error::Api(response.json().await?)),
+        }
+    }
+
+    /// Update webhook callback URL
+    ///
+    /// [/item/webhook/update]
+    ///
+    /// Update the webhook URL associated with an Item. This request triggers a
+    /// WEBHOOK_UPDATE_ACKNOWLEDGED webhook to the newly specified webhook URL.
+    ///
+    /// [/item/webhook/update]: https://plaid.com/docs/api/items/#itemwebhookupdate
+    pub async fn update_webhook(
+        &self,
+        access_token: &str,
+        webhook_url: &str,
+    ) -> Result<WebhookUpdateResponse, Error> {
+        // TODO: make this strongly typed?
+        let body = json!({
+            "client_id": &self.client_id,
+            "secret": &self.secret,
+            "access_token": access_token,
+            "webhook": webhook_url
+        });
+
+        let response = self
+            .client
+            .post(&format!("{}/item/webhook/update", self.url))
             .json(&body)
             .send()
             .await?;
