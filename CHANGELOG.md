@@ -1,6 +1,15 @@
 # Changelog
 
-### [v0.7.0](https://github.com/telcoin/plaid/compare/v0.6.0...v0.7.0) (2022-05-06)
+## [v0.8.0](https://github.com/telcoin/plaid/compare/v0.7.0...v0.8.0) (2022-05-27)
+
+
+### Features
+
+* add webhooks with std async/await (#7)
+ c3a6a7b
+
+
+## [v0.7.0](https://github.com/telcoin/plaid/compare/v0.6.0...v0.7.0) (2022-05-06)
 
 
 ### Features
