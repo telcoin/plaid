@@ -105,11 +105,23 @@ pub struct Webhook {
 #[cfg(feature = "webhook-verification")]
 pub mod verification {
     use base64::decode_config;
-    use jsonwebtoken::jwk;
-    use openssl::bn::BigNum;
+    use jsonwebtoken::{
+        jwk::{self, AlgorithmParameters, EllipticCurve, EllipticCurveKeyParameters, Jwk},
+        Algorithm,
+    };
+    use openssl::{bn::BigNum, ec::EcGroup, sha::sha256};
     use serde::{Deserialize, Serialize};
 
     use crate::Error;
+
+    #[derive(Serialize, Deserialize, Debug)]
+    pub enum WebhookVerificationError {
+        MissingParameter(String),
+        IncorrectAlgorithm,
+        CouldNotParse,
+        CouldNotValidate,
+        Cryptography,
+    }
 
     /// Response to the `/webhook_verification/get` request
     #[derive(Serialize, Deserialize, Debug)]
@@ -130,8 +142,92 @@ pub mod verification {
     }
 
     pub(crate) fn string_to_big_num(val: &str) -> Result<BigNum, Error> {
-        let b64 =
-            decode_config(val, base64::URL_SAFE_NO_PAD).map_err(|_| Error::WebhookVerification)?;
-        Ok(BigNum::from_slice(&b64).map_err(|_| Error::WebhookVerification)?)
+        let b64 = decode_config(val, base64::URL_SAFE_NO_PAD)
+            .map_err(|_| Error::WebhookVerification(WebhookVerificationError::CouldNotParse))?;
+        Ok(BigNum::from_slice(&b64)
+            .map_err(|_| Error::WebhookVerification(WebhookVerificationError::CouldNotParse))?)
+    }
+
+    pub fn extract_key_id_and_token(webhook: &reqwest::Request) -> Result<(String, String), Error> {
+        let token = webhook
+            .headers()
+            .get("plaid-verification")
+            .ok_or(Error::WebhookVerification(
+                WebhookVerificationError::MissingParameter("plaid-verification".to_owned()),
+            ))?
+            .to_str()
+            .map_err(|_| {
+                Error::WebhookVerification(WebhookVerificationError::MissingParameter(
+                    "plaid-verification".to_owned(),
+                ))
+            })?
+            .to_owned();
+
+        let header = jsonwebtoken::decode_header(&token)
+            .map_err(|_| Error::WebhookVerification(WebhookVerificationError::CouldNotParse))?;
+
+        if header.alg != Algorithm::ES256 {
+            return Err(Error::WebhookVerification(
+                WebhookVerificationError::IncorrectAlgorithm,
+            ));
+        }
+
+        let kid = if let Some(kid) = header.kid {
+            kid
+        } else {
+            return Err(Error::WebhookVerification(
+                WebhookVerificationError::MissingParameter("kid".to_string()),
+            ));
+        };
+
+        Ok((kid, token))
+    }
+
+    pub fn verify_webhook(key: Jwk, token: String, webhook_bytes: &[u8]) -> Result<bool, Error> {
+        let (x, y) = match key.algorithm {
+            AlgorithmParameters::EllipticCurve(EllipticCurveKeyParameters {
+                curve: EllipticCurve::P256,
+                x,
+                y,
+                ..
+            }) => (x, y),
+            // Wrong algorithm
+            _ => return Ok(false),
+        };
+
+        let x = string_to_big_num(&x)?;
+        let y = string_to_big_num(&y)?;
+
+        let ec_group = EcGroup::from_curve_name(openssl::nid::Nid::X9_62_PRIME256V1)
+            .map_err(|_| Error::WebhookVerification(WebhookVerificationError::Cryptography))?;
+
+        let openssl_key = openssl::ec::EcKey::from_public_key_affine_coordinates(&ec_group, &x, &y)
+            .map_err(|_| Error::WebhookVerification(WebhookVerificationError::Cryptography))?;
+        let openssl_key_pem = openssl_key
+            .public_key_to_pem()
+            .map_err(|_| Error::WebhookVerification(WebhookVerificationError::Cryptography))?;
+
+        let key = jsonwebtoken::DecodingKey::from_ec_pem(&openssl_key_pem)
+            .map_err(|_| Error::WebhookVerification(WebhookVerificationError::CouldNotParse))?;
+        let mut val = jsonwebtoken::Validation::new(jsonwebtoken::Algorithm::ES256);
+
+        // Don't check for exp
+        val.required_spec_claims = Default::default();
+        val.validate_exp = false;
+
+        let token_data = jsonwebtoken::decode::<Claims>(&token, &key, &val)
+            .map_err(|_| Error::WebhookVerification(WebhookVerificationError::CouldNotValidate))?;
+
+        // verify time was within 5 minutes
+        let now = jsonwebtoken::get_current_timestamp();
+        if now - (5 * 60) > token_data.claims.iat {
+            return Ok(false);
+        }
+
+        let webhook_sha = sha256(&webhook_bytes);
+        let expected_sha: [u8; 32] = hex::FromHex::from_hex(&token_data.claims.request_body_sha256)
+            .map_err(|_| Error::WebhookVerification(WebhookVerificationError::CouldNotParse))?;
+
+        Ok(webhook_sha == expected_sha)
     }
 }
