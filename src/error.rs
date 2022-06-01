@@ -15,7 +15,7 @@ pub enum Error {
 
     /// An error that occured while performing webhok verification
     #[cfg(feature = "webhook-verification")]
-    WebhookVerification, //(WebhookVerificationError),
+    WebhookVerification(crate::verification::WebhookVerificationError),
 }
 
 // #[derive(Debug)]

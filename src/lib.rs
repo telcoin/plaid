@@ -438,32 +438,11 @@ impl Client {
     /// Only available with the "webhook-verification" feature flag
     #[cfg(feature = "webhook-verification")]
     pub async fn verify_webhook(&mut self, webhook: reqwest::Request) -> Result<bool, Error> {
-        use jsonwebtoken::{
-            jwk::{AlgorithmParameters, EllipticCurve, EllipticCurveKeyParameters, Jwk},
-            Algorithm,
-        };
-        use openssl::{ec::EcGroup, sha::sha256};
+        use jsonwebtoken::jwk::Jwk;
+
         use webhook::verification::*;
 
-        let token = webhook
-            .headers()
-            .get("plaid-verification")
-            .ok_or(Error::WebhookVerification)?
-            .to_str()
-            .map_err(|_| Error::WebhookVerification)?
-            .to_owned();
-
-        let header = jsonwebtoken::decode_header(&token).map_err(|_| Error::WebhookVerification)?;
-
-        if header.alg != Algorithm::ES256 {
-            return Ok(false);
-        }
-
-        let kid = if let Some(kid) = header.kid {
-            kid
-        } else {
-            return Ok(false);
-        };
+        let (kid, token) = extract_key_id_and_token(&webhook)?;
 
         let key: Jwk = match self.jwk_set.find(&kid) {
             Some(key) => key.to_owned(),
@@ -489,56 +468,17 @@ impl Client {
             }
         };
 
-        let (x, y) = match key.algorithm {
-            AlgorithmParameters::EllipticCurve(EllipticCurveKeyParameters {
-                curve: EllipticCurve::P256,
-                x,
-                y,
-                ..
-            }) => (x, y),
-            // Wrong algorithm
-            _ => return Ok(false),
-        };
-
-        let x = string_to_big_num(&x)?;
-        let y = string_to_big_num(&y)?;
-
-        let ec_group = EcGroup::from_curve_name(openssl::nid::Nid::X9_62_PRIME256V1)
-            .map_err(|_| Error::WebhookVerification)?;
-
-        let openssl_key = openssl::ec::EcKey::from_public_key_affine_coordinates(&ec_group, &x, &y)
-            .map_err(|_| Error::WebhookVerification)?;
-        let openssl_key_pem = openssl_key
-            .public_key_to_pem()
-            .map_err(|_| Error::WebhookVerification)?;
-
-        let key = jsonwebtoken::DecodingKey::from_ec_pem(&openssl_key_pem)
-            .map_err(|_| Error::WebhookVerification)?;
-        let mut val = jsonwebtoken::Validation::new(jsonwebtoken::Algorithm::ES256);
-
-        // Don't check for exp
-        val.required_spec_claims = Default::default();
-        val.validate_exp = false;
-
-        let token_data = jsonwebtoken::decode::<verification::Claims>(&token, &key, &val)
-            .map_err(|_| Error::WebhookVerification)?;
-
-        // verify time was within 5 minutes
-        let now = jsonwebtoken::get_current_timestamp();
-        if now - (5 * 60) > token_data.claims.iat {
-            return Ok(false);
-        }
-
-        let webhook_body_bytes = webhook
+        let webhook_bytes = webhook
             .body()
-            .ok_or(Error::WebhookVerification)?
+            .ok_or(Error::WebhookVerification(
+                WebhookVerificationError::CouldNotParse,
+            ))?
             .as_bytes()
-            .ok_or(Error::WebhookVerification)?;
-        let webhook_sha = sha256(&webhook_body_bytes);
-        let expected_sha: [u8; 32] = hex::FromHex::from_hex(&token_data.claims.request_body_sha256)
-            .map_err(|_| Error::WebhookVerification)?;
+            .ok_or(Error::WebhookVerification(
+                WebhookVerificationError::CouldNotParse,
+            ))?;
 
-        Ok(webhook_sha == expected_sha)
+        verify_webhook(key, token, webhook_bytes)
     }
 }
 
@@ -652,114 +592,5 @@ mod tests {
                 ..
             }))
         ));
-    }
-
-    #[cfg(feature = "webhook-verification")]
-    #[tokio::test]
-    async fn webhook_validation() {
-        use jsonwebtoken::jwk::Jwk;
-
-        let token = "eyJhbGciOiJFUzI1NiIsImtpZCI6ImJmYmQ1MTExLThlMzMtNDY0My04Y2VkLWIyZTY0MmE3MmYzYyIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2NTIyMTIyMDEsInJlcXVlc3RfYm9keV9zaGEyNTYiOiIxZWMzYTU5MWQ2NzkzNzJjZjY2MDkyOGRjNTdiM2EzZDAwMjY5ODUxYmViOTcyNDQ5MjE3ZTI5MjA2ZWNiNzRlIn0.F62dD33BaVzbJDqXthMxj_CR23c1cHHrSukk_qrRLw77hb2753j-3mmMymNkYLc7xolPTJ1zH_C0xMWecm1kdQ".to_owned();
-        let header = jsonwebtoken::decode_header(&token)
-            .map_err(|_| Error::WebhookVerification)
-            .unwrap();
-
-        if header.alg != jsonwebtoken::Algorithm::ES256 {
-            println!("false");
-            return;
-        }
-
-        let kid = if let Some(kid) = header.kid {
-            kid
-        } else {
-            println!("false");
-            return;
-        };
-
-        println!("{}", kid);
-
-        assert!(true);
-
-        let key: Jwk = serde_json::from_str(
-            r#"{
-              "alg": "ES256",
-              "created_at": 1560466150,
-              "crv": "P-256",
-              "expired_at": null,
-              "kid": "bfbd5111-8e33-4643-8ced-b2e642a72f3c",
-              "kty": "EC",
-              "use": "sig",
-              "x": "hKXLGIjWvCBv-cP5euCTxl8g9GLG9zHo_3pO5NN1DwQ",
-              "y": "shhexqPB7YffGn6fR6h2UhTSuCtPmfzQJ6ENVIoO4Ys"
-            }"#,
-        )
-        .unwrap();
-
-        println!("{:#?}", key);
-
-        let (x, y) = match key.algorithm {
-            jsonwebtoken::jwk::AlgorithmParameters::EllipticCurve(
-                jsonwebtoken::jwk::EllipticCurveKeyParameters {
-                    curve: jsonwebtoken::jwk::EllipticCurve::P256,
-                    x,
-                    y,
-                    ..
-                },
-            ) => (x, y),
-            _ => {
-                panic!()
-            }
-        };
-
-        println!("x: {}\ny: {}", x, y);
-
-        let x = verification::string_to_big_num(&x).unwrap();
-        let y = verification::string_to_big_num(&y).unwrap();
-        println!("x: {}\ny: {}", x, y);
-
-        let ec_group =
-            openssl::ec::EcGroup::from_curve_name(openssl::nid::Nid::X9_62_PRIME256V1).unwrap();
-
-        let openssl_key =
-            openssl::ec::EcKey::from_public_key_affine_coordinates(&ec_group, &x, &y).unwrap();
-        println!("openssl_key: {:?}", openssl_key);
-        let openssl_key_pem = openssl_key.public_key_to_pem().unwrap();
-        println!("openssl_key_pem: {:?}", openssl_key_pem);
-
-        let key = jsonwebtoken::DecodingKey::from_ec_pem(&openssl_key_pem).unwrap();
-        let mut val = jsonwebtoken::Validation::new(jsonwebtoken::Algorithm::ES256);
-        val.required_spec_claims = Default::default();
-        val.validate_exp = false;
-        let token_data = jsonwebtoken::decode::<verification::Claims>(&token, &key, &val).unwrap();
-
-        println!("{:?}", token_data);
-
-        // verify time was within 5 minutes
-        let now = jsonwebtoken::get_current_timestamp();
-        if now - (5 * 60) > token_data.claims.iat {
-            println!("false");
-        }
-
-        let webhook_body_bytes = r#"{
-  "error": {
-    "error_code": "ITEM_LOGIN_REQUIRED",
-    "error_message": "the login details of this item have changed (credentials, MFA, or required user action) and a user login is required to update this information. use Link's update mode to restore the item to a good state",
-    "error_type": "ITEM_ERROR",
-    "status": 400
-  },
-  "item_id": "6qQ4dq8ng0U5borLEekBTQLy0KM7gaCaZgrVp",
-  "webhook_code": "ERROR",
-  "webhook_type": "ITEM"
-}"#.as_bytes();
-        let webhook_sha = openssl::sha::sha256(&webhook_body_bytes);
-        let expected_sha: [u8; 32] = hex::FromHex::from_hex(&token_data.claims.request_body_sha256)
-            .map_err(|_| Error::WebhookVerification)
-            .unwrap();
-
-        if webhook_sha == expected_sha {
-            println!("We did it!");
-        }
-
-        assert!(true)
     }
 }
