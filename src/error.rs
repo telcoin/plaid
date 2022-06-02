@@ -12,10 +12,6 @@ pub enum Error {
 
     /// An error that ocurred during transport (using "futures-std" feature)
     TransportStd(ReqwestError),
-
-    /// An error that occured while performing webhok verification
-    #[cfg(feature = "webhook-verification")]
-    WebhookVerification(crate::verification::WebhookVerificationError),
 }
 
 // #[derive(Debug)]
