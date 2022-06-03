@@ -14,14 +14,6 @@ pub enum Error {
     TransportStd(ReqwestError),
 }
 
-// #[derive(Debug)]
-// #[cfg(feature = "webhook-verification")]
-// pub enum WebhookVerificationError {
-//     Jwt(JwtError),
-//     OpenSsl,
-//     Other(Box<dyn std::error::Error>),
-// }
-
 impl From<ReqwestError> for Error {
     fn from(error: ReqwestError) -> Self {
         Error::TransportStd(error)
