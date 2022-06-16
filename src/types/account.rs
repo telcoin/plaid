@@ -115,6 +115,8 @@ pub struct Balances {
     ///
     /// Available balance may be cached and is not guaranteed to be up-to-date
     /// in realtime unless the value was returned by `/account/balance/get`.
+    ///
+    /// If current is null this field is guaranteed not to be null.
     pub available: Option<f64>,
 
     /// The total amount of funds in or owed by the account.
@@ -130,7 +132,10 @@ pub struct Balances {
     ///
     /// Current balance may be cached and is not guaranteed to be up-to-date in
     /// realtime unless the value was returned by `/account/balance/get`.
-    pub current: f64,
+    ///
+    /// When returned by /accounts/balance/get, this field may be null. When
+    /// this happens, available is guaranteed not to be null.
+    pub current: Option<f64>,
 
     /// For credit-type accounts, this represents the credit limit.
     ///
