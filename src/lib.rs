@@ -55,6 +55,8 @@ pub struct Client {
     secret: Secret,
     url: String,
     client: ReqwestClient,
+    #[cfg(feature = "webhook-verification")]
+    jwk_cache: std::collections::HashMap<String, verification::Jwk>,
 }
 
 impl Client {
@@ -72,6 +74,8 @@ impl Client {
                 .connect_timeout(Duration::from_secs(30))
                 .build()
                 .expect("could not create Reqwest client"),
+            #[cfg(feature = "webhook-verification")]
+            jwk_cache: Default::default(),
         }
     }
 
@@ -425,6 +429,105 @@ impl Client {
             StatusCode::OK => Ok(response.json().await?),
             _ => Err(Error::Api(response.json().await?)),
         }
+    }
+
+    /// Verifies the incoming webhook using JWTs and JWKs
+    ///
+    /// See [https://plaid.com/docs/api/webhooks/webhook-verification/]
+    ///
+    /// Only available with the `webhook-verification` feature flag
+    #[cfg(feature = "webhook-verification")]
+    pub async fn verify_webhook(
+        &mut self,
+        token: &str,
+        webhook_body: &[u8],
+    ) -> Result<bool, verification::WebhookVerificationError> {
+        use webhook::verification::*;
+
+        let kid = extract_key_id(&token)?;
+
+        // update key cache if necessary
+        match self.jwk_cache.get(&kid).map(Jwk::is_expired) {
+            // Key is already good to use
+            Some(Some(false)) => {}
+            // key is cached but may be expired
+            Some(Some(true)) | Some(None) => self.update_all_keys(None).await,
+            // Key is not yet in the cache
+            None => self.update_all_keys(Some(&kid)).await,
+        };
+
+        let key = match self.jwk_cache.get(&kid).map(|key| (key, key.is_expired())) {
+            // key is cached and un-expired
+            Some((key, Some(false))) => key,
+            // key is cached, but expired
+            Some((_, Some(true))) => return Ok(false),
+            // Either the key doesn't exist, or the expiration is invalid somehow
+            Some((_, None)) | None => return Err(WebhookVerificationError::CouldNotValidate),
+        };
+
+        Ok(verify_webhook(&key, token, webhook_body)?)
+    }
+
+    #[cfg(feature = "webhook-verification")]
+    async fn update_all_keys(&mut self, new_key_id: Option<&str>) {
+        use std::collections::HashMap;
+        use verification::Jwk;
+
+        // add the new key if needed
+        let mut keys: Vec<&str> = self.jwk_cache.keys().map(String::as_str).collect();
+        if let Some(new_key_id) = new_key_id {
+            keys.push(new_key_id);
+        }
+
+        // create a new map with all the new keys
+        let mut new_jwk_map: HashMap<String, Jwk> = Default::default();
+        for key_id in keys {
+            match self.get_new_key(&key_id).await {
+                Ok(key) => {
+                    new_jwk_map.insert(key_id.to_string(), key);
+                }
+                Err(_e) => {}
+            }
+        }
+
+        // update the cache
+        self.jwk_cache = new_jwk_map;
+    }
+
+    #[cfg(feature = "webhook-verification")]
+    async fn get_new_key(
+        &self,
+        key_id: &str,
+    ) -> Result<verification::Jwk, verification::WebhookVerificationError> {
+        use chrono::Duration;
+        use verification::WebhookVerificationResponse;
+
+        let body = json!({"client_id": &self.client_id, "secret": &self.secret, "key_id": key_id});
+
+        let response = self
+            .client
+            .post(&format!("{}/webhook_verification_key/get", self.url))
+            .json(&body)
+            .send()
+            .await
+            .map_err(Error::from)?;
+
+        let WebhookVerificationResponse { mut key, .. } = match response.status() {
+            StatusCode::OK => response.json().await.map_err(Error::from)?,
+            _ => Err(Error::Api(response.json().await.map_err(Error::from)?))?,
+        };
+
+        // Instead of checking the cache every 24 hours, we set it to expire in 24 hours,
+        // then update if necessary
+        match key.expired_at {
+            None => {
+                let now = jsonwebtoken::get_current_timestamp();
+                key.expired_at = Some(now + Duration::hours(24).num_seconds() as u64)
+            }
+            Some(_) => {}
+        }
+
+        Ok(key)
     }
 }
 
