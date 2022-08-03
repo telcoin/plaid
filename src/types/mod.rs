@@ -6,6 +6,7 @@ use std::str::FromStr;
 
 pub use account::*;
 pub use auth::*;
+pub use institution::*;
 pub use item::*;
 pub use secrecy::{ExposeSecret, SecretString};
 use serde::ser::Serializer;
@@ -14,6 +15,7 @@ pub use token::*;
 
 mod account;
 mod auth;
+mod institution;
 mod item;
 pub(crate) mod serde_utils;
 mod token;

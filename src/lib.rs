@@ -426,6 +426,63 @@ impl Client {
             _ => Err(Error::Api(response.json().await?)),
         }
     }
+
+    /// Get details of an institution
+    ///
+    /// [/instutions/get_by_id]
+    ///
+    /// Returns a JSON response containing details on a specified financial institution
+    /// currently supported by Plaid.
+    ///
+    /// Versioning note: API versions 2019-05-29 and earlier allow use of the public_key
+    /// parameter instead of the client_id and secret to authenticate to this endpoint.
+    /// The public_key has been deprecated; all customers are encouraged to use client_id
+    /// and secret instead.
+    ///
+    /// # Country codes
+    /// Specify an array of Plaid-supported country codes this institution supports, using
+    /// the ISO-3166-1 alpha-2 country code standard. In API versions 2019-05-29 and earlier,
+    /// the country_codes parameter is an optional parameter within the options object and
+    /// will default to `US` if it is not supplied.
+    ///
+    /// Possible values: `US`, `GB`, `ES`, `NL`, `FR`, `IE`, `CA`, `DE`, `IT`
+    ///
+    /// [/instutions/get_by_id]: https://plaid.com/docs/api/institutions/#institutionsget_by_id
+    pub async fn institution_by_id(
+        &self,
+        institution_id: &str,
+        country_codes: &[&str],
+        options: Option<InstitutionRequestOptions>,
+    ) -> Result<InstitutionResponse, Error> {
+        let body = if options.is_some() {
+            json!({
+                "client_id": &self.client_id,
+                "secret": &self.secret,
+                "institution_id": institution_id,
+                "country_codes": country_codes,
+                "option": options
+            })
+        } else {
+            json!({
+                "client_id": &self.client_id,
+                "secret": &self.secret,
+                "institution_id": institution_id,
+                "country_codes": country_codes,
+            })
+        };
+
+        let response = self
+            .client
+            .post(&format!("{}/institutions/get_by_id", self.url))
+            .json(&body)
+            .send()
+            .await?;
+
+        match response.status() {
+            StatusCode::OK => Ok(response.json().await?),
+            _ => Err(Error::Api(response.json().await?)),
+        }
+    }
 }
 
 #[cfg(test)]
