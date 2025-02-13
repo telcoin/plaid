@@ -1,7 +1,7 @@
 [package]
 name = "plaid"
 version = "0.10.0"
-authors = ["William Myers <will@telco.in>", "Justin Clitheroe <justin.clitheroe@telco.in>"]
+authors = ["William Myers <will@telco.in>", "Walker Thornley <walker.thornley@telco.in>", "Justin Clitheroe <justin.clitheroe@telco.in>"]
 edition = "2018"
 description = "Unofficial Rust client library for the Plaid API"
 repository = "https://github.com/telcoin/plaid"
