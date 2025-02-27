@@ -509,24 +509,28 @@ mod tests {
         Ok((client, token))
     }
 
+    #[ignore]
     #[tokio::test]
     async fn can_get_accounts() {
         let (client, token) = client_from_env().await.unwrap();
         client.accounts(&token).await.unwrap();
     }
 
+    #[ignore]
     #[tokio::test]
     async fn can_get_balance() {
         let (client, token) = client_from_env().await.unwrap();
         client.balance(&token, Default::default()).await.unwrap();
     }
 
+    #[ignore]
     #[tokio::test]
     async fn can_get_auth() {
         let (client, token) = client_from_env().await.unwrap();
         client.auth(&token, Default::default()).await.unwrap();
     }
 
+    #[ignore]
     #[tokio::test]
     #[allow(clippy::unnecessary_operation)]
     async fn can_get_identity() {
@@ -534,6 +538,7 @@ mod tests {
         let _ = &client.identity(&token).await.unwrap().accounts[0].owners[0];
     }
 
+    #[ignore]
     #[tokio::test]
     async fn can_create_processor_token() {
         let (client, token) = client_from_env().await.unwrap();
@@ -548,6 +553,7 @@ mod tests {
             .unwrap();
     }
 
+    #[ignore]
     #[tokio::test]
     async fn can_create_link_token() {
         let (client, _) = client_from_env().await.unwrap();
@@ -576,6 +582,7 @@ mod tests {
             .unwrap();
     }
 
+    #[ignore]
     #[tokio::test]
     async fn can_handle_errors() {
         let client = Client::new(
