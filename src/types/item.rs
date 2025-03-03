@@ -1,7 +1,8 @@
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 /// Description of the kind of webhook
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, JsonSchema, Debug)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 #[serde(tag = "webhook_code")]
 pub enum ItemWebhookCode {
@@ -24,7 +25,7 @@ pub enum ItemWebhookCode {
 }
 
 /// Webhooks are used to communicate changes to an `Item`, such as an updated webhook, or errors encountered with an `Item`. The error typically requires user action to resolve, such as when a user changes their password. All `Item` webhooks have a `webhook_type` of `ITEM`.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, JsonSchema, Debug)]
 pub struct ItemWebhook {
     /// Description of the kind of webhook
     #[serde(flatten)]

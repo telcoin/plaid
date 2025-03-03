@@ -1,5 +1,6 @@
 //! Webhooks
 
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 /// The response from performing an `update_webhook` request
@@ -10,7 +11,7 @@ pub struct WebhookUpdateResponse {
 }
 
 /// A broad categorization of the error. Safe for programmatic use.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, JsonSchema, Debug)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum WebhookErrorType {
     /// Invalid Request Error
@@ -45,7 +46,7 @@ pub enum WebhookErrorType {
 /// further classified by error_type. In general, 200 HTTP codes correspond to success, 40X codes
 /// are for developer- or user-related failures, and 50X codes are for Plaid-related issues.
 /// Error fields will be null if no error has occurred.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, JsonSchema, Debug)]
 pub struct WebhookError {
     /// A user-friendly representation of the error code. `null` if the error is not related to user
     /// action. This may change over time and is not safe for programmatic use.
@@ -76,7 +77,7 @@ pub struct WebhookError {
 }
 
 /// The type of webhook
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, JsonSchema, Debug)]
 #[serde(tag = "webhook_type")]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum WebhookType {
@@ -89,7 +90,7 @@ pub enum WebhookType {
 }
 
 /// Top level webhook struct
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, JsonSchema, Debug)]
 pub struct Webhook {
     /// The type of webhook
     #[serde(flatten)]
