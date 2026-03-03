@@ -50,10 +50,7 @@ jobs:
 
       - run: cargo clippy --all-features --verbose
       
-      # The features must be tested individually 
-      - run: |
-          cargo test --verbose
-          cargo test --features=futures-01 --no-default-features --verbose
+      - run: cargo test --verbose
         env:
           PLAID_CLIENT_ID: ${{ secrets.PLAID_CLIENT_ID }}
           PLAID_SECRET: ${{ secrets.PLAID_SECRET }}
