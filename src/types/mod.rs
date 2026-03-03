@@ -30,7 +30,7 @@ pub struct Secret(SecretString);
 
 impl Secret {
     fn new(secret: String) -> Self {
-        Self(SecretString::new(secret))
+        Self(SecretString::from(secret))
     }
 }
 

@@ -114,7 +114,7 @@ impl Client {
 
         let response = self
             .client
-            .post(&format!("{}/sandbox/public_token/create", self.url))
+            .post(format!("{}/sandbox/public_token/create", self.url))
             .json(&body)
             .send()
             .await?;
@@ -152,7 +152,7 @@ impl Client {
 
         let response = self
             .client
-            .post(&format!("{}/link/token/create", self.url))
+            .post(format!("{}/link/token/create", self.url))
             .json(&body)
             .send()
             .await?;
@@ -191,7 +191,7 @@ impl Client {
 
         let response = self
             .client
-            .post(&format!("{}/item/public_token/exchange", self.url))
+            .post(format!("{}/item/public_token/exchange", self.url))
             .json(&body)
             .send()
             .await?;
@@ -236,7 +236,7 @@ impl Client {
 
         let response = self
             .client
-            .post(&format!("{}/processor/token/create", self.url))
+            .post(format!("{}/processor/token/create", self.url))
             .json(&body)
             .send()
             .await?;
@@ -266,7 +266,7 @@ impl Client {
 
         let response = self
             .client
-            .post(&format!("{}/accounts/get", self.url))
+            .post(format!("{}/accounts/get", self.url))
             .json(&body)
             .send()
             .await?;
@@ -305,7 +305,7 @@ impl Client {
 
         let response = self
             .client
-            .post(&format!("{}/accounts/balance/get", self.url))
+            .post(format!("{}/accounts/balance/get", self.url))
             .json(&body)
             .send()
             .await?;
@@ -346,7 +346,7 @@ impl Client {
 
         let response = self
             .client
-            .post(&format!("{}/auth/get", self.url))
+            .post(format!("{}/auth/get", self.url))
             .json(&body)
             .send()
             .await?;
@@ -382,7 +382,7 @@ impl Client {
 
         let response = self
             .client
-            .post(&format!("{}/identity/get", self.url))
+            .post(format!("{}/identity/get", self.url))
             .json(&body)
             .send()
             .await?;
@@ -416,7 +416,7 @@ impl Client {
 
         let response = self
             .client
-            .post(&format!("{}/item/webhook/update", self.url))
+            .post(format!("{}/item/webhook/update", self.url))
             .json(&body)
             .send()
             .await?;
@@ -473,7 +473,7 @@ impl Client {
 
         let response = self
             .client
-            .post(&format!("{}/institutions/get_by_id", self.url))
+            .post(format!("{}/institutions/get_by_id", self.url))
             .json(&body)
             .send()
             .await?;
@@ -492,8 +492,8 @@ mod tests {
     use super::*;
 
     async fn client_from_env() -> Result<(Client, String), Box<dyn StdError>> {
-        let client_id = dotenv::var("PLAID_CLIENT_ID")?;
-        let secret = dotenv::var("PLAID_SECRET")?;
+        let client_id = dotenvy::var("PLAID_CLIENT_ID")?;
+        let secret = dotenvy::var("PLAID_SECRET")?;
         let client = Client::new(client_id, secret, Environment::Sandbox);
 
         let public_token = client
