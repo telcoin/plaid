@@ -1,6 +1,7 @@
 # plaid
 
 [![CI](https://github.com/telcoin/plaid/workflows/CI/badge.svg)](https://github.com/telcoin/plaid/actions?query=workflow%3ACI)
+[![License](https://img.shields.io/github/license/telcoin/plaid)](https://github.com/telcoin/plaid/blob/main/LICENSE)
 
 An unofficial Rust client library for the [Plaid API].
 
