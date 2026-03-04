@@ -12,6 +12,7 @@ default = ["rustls-tls"]
 
 native-tls = ["reqwest/native-tls"]
 rustls-tls = ["reqwest/rustls-tls"]
+webhook-verification = ["jsonwebtoken", "openssl", "hex", "base64"]
 
 [dependencies]
 chrono = { version = "0.4", features = ["serde"] }
@@ -20,6 +21,11 @@ schemars = { version = "1.2", features = ["chrono04"] }
 secrecy = "0.10"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+
+jsonwebtoken = { version = "8", optional = true }
+openssl = { version = "0.10", optional = true }
+hex = { version = "0.4.3", optional = true }
+base64 = { version = "0.13.0", optional = true }
 
 [dev-dependencies]
 dotenvy = "0.15.0"
