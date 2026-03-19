@@ -460,7 +460,7 @@ impl Client {
                 "secret": &self.secret,
                 "institution_id": institution_id,
                 "country_codes": country_codes,
-                "option": options
+                "options": options
             })
         } else {
             json!({
