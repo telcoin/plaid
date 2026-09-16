@@ -65,14 +65,37 @@ pub struct AchAccountNumbers {
     /// The Plaid account ID associated with the account numbers
     pub account_id: String,
 
-    /// The ACH account number for the account
+    /// The ACH account number for the account.
+    ///
+    /// At certain institutions, including Chase and PNC, you will receive a
+    /// "tokenized" routing and account number pair, which is not the user's
+    /// actual account and routing number. See
+    /// [`is_tokenized_account_number`](#structfield.is_tokenized_account_number)
+    /// and Plaid's [Tokenized account numbers] documentation.
+    ///
+    /// [Tokenized account numbers]: https://plaid.com/docs/auth/coverage/microdeposit-events/#tokenized-account-numbers
     pub account: String,
+
+    /// Indicates whether the account number is tokenized by the institution.
+    #[serde(default)]
+    pub is_tokenized_account_number: Option<bool>,
 
     /// The ACH routing number for the account
     pub routing: String,
 
-    /// The wire transfer routing number for the account, if available
+    /// The wire transfer routing number for the account.
+    ///
+    /// This field is only populated if the institution is known to use a
+    /// different routing number for wire transfers.
     pub wire_routing: Option<String>,
+
+    /// Whether the account supports ACH transfers into the account.
+    #[serde(default)]
+    pub can_transfer_in: Option<bool>,
+
+    /// Whether the account supports ACH transfers out of the account.
+    #[serde(default)]
+    pub can_transfer_out: Option<bool>,
 }
 
 /// The numbers identifying an EFT account.
@@ -100,7 +123,7 @@ pub struct InternationalAccountNumbers {
     /// The International Bank Account Number (IBAN) for the account
     pub iban: String,
 
-    /// The Bank Identifier Code (BIC) for the account
+    /// The Business Identifier Code (BIC) for the account
     pub bic: String,
 }
 

@@ -6,12 +6,18 @@ use serde::{Deserialize, Serialize};
 /// The response from performing an `update_webhook` request
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct WebhookUpdateResponse {
-    item: super::Item,
-    request_id: String,
+    /// Metadata about the Item.
+    pub item: super::Item,
+    /// A unique identifier for the request, which can be used for
+    /// troubleshooting. This identifier, like all Plaid identifiers, is case
+    /// sensitive.
+    pub request_id: String,
 }
 
 /// A broad categorization of the error. Safe for programmatic use.
-#[derive(Serialize, Deserialize, JsonSchema, Debug)]
+///
+/// See [Error Schema](https://plaid.com/docs/errors/#error-schema).
+#[derive(Serialize, Deserialize, JsonSchema, Copy, Clone, Debug, PartialEq, Eq)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum WebhookErrorType {
     /// Invalid Request Error
@@ -28,8 +34,12 @@ pub enum WebhookErrorType {
     ApiError,
     /// Item Error
     ItemError,
+    /// Assets Error
+    AssetsError,
     /// Asset Report Error
     AssetReportError,
+    /// Base Report Error
+    BaseReportError,
     /// Recaptcha Error
     RecaptchaError,
     /// OAuth Error
@@ -38,8 +48,35 @@ pub enum WebhookErrorType {
     PaymentError,
     /// Bank Transfer Error
     BankTransferError,
+    /// Transfer Error
+    TransferError,
     /// Income Verification Error
     IncomeVerificationError,
+    /// Micro-deposits Error
+    MicrodepositsError,
+    /// Sandbox Error
+    SandboxError,
+    /// Partner Error
+    PartnerError,
+    /// Signal Error
+    SignalError,
+    /// Transactions Error
+    TransactionsError,
+    /// Recurring Transactions Error
+    RecurringTransactionsError,
+    /// Statements Error
+    StatementsError,
+    /// Check Report Error
+    CheckReportError,
+    /// Consumer Report Error
+    ConsumerReportError,
+    /// User Error
+    UserError,
+    /// Idempotency Error
+    IdempotencyError,
+    /// Unknown or all other errors.
+    #[serde(other)]
+    Unknown,
 }
 
 /// We use standard HTTP response codes for success and failure notifications, and our errors are
@@ -53,6 +90,10 @@ pub struct WebhookError {
     pub display_message: Option<String>,
     /// The particular error code
     pub error_code: String,
+    /// The specific reason for the error code. Currently, reasons are only supported for
+    /// OAuth-based Item errors, and `null` will be returned otherwise.
+    #[serde(default)]
+    pub error_code_reason: Option<String>,
     /// A developer-friendly representation of the error code. This may change over time and is not
     /// safe for programmatic use.
     pub error_message: String,
@@ -66,10 +107,12 @@ pub struct WebhookError {
     /// errors on the individual `Item` level, if any can be identified.
     /// `causes` will only be provided for the error_type `ASSET_REPORT_ERROR`. `causes` will also not be
     /// populated inside an error nested within a warning object.
-    pub causes: Option<Vec<String>>,
+    #[serde(default)]
+    pub causes: Option<Vec<serde_json::Value>>,
     /// The HTTP status code associated with the error. This will only be returned in the response
     /// body when the error information is provided via a webhook.
-    pub status: i32,
+    #[serde(default)]
+    pub status: Option<i32>,
     /// The URL of a Plaid documentation page with more information about the error
     pub documentation_url: Option<String>,
     /// Suggested steps for resolving the error

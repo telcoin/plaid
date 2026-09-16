@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 /// Specifies optional parameters for [/institutions/get_by_id]. If provided, must not be null.
 ///
 /// [/instutions/get_by_id]: https://plaid.com/docs/api/institutions/#institutionsget_by_id
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Default, Clone, Debug)]
 pub struct InstitutionRequestOptions {
     /// When true, return an institution's logo, brand color, and URL. When available, the bank's
     /// logo is returned as a base64 encoded 152x152 PNG, the brand color is in hexadecimal format.
@@ -19,6 +19,8 @@ pub struct InstitutionRequestOptions {
     /// to the logos.
     pub include_optional_metadata: bool,
     /// If true, the response will include status information about the institution.
+    ///
+    /// Note that institution status is not available in the Sandbox environment.
     pub include_status: bool,
     /// When true, returns metadata related to the Auth product indicating which auth methods are
     /// supported.
@@ -50,26 +52,23 @@ pub struct Institution {
     /// auth may still support other Auth methods such as Instant Match or Automated Micro-deposit
     /// Verification. To identify institutions that support those methods, use the auth_metadata
     /// object. For more details, see Full Auth coverage.
-    ///
-    /// Possible values: assets, auth, balance, identity, investments, liabilities,
-    /// payment_initiation, identity_verification, transactions, credit_details, income,
-    /// income_verification, deposit_switch, standing_orders, transfer, employment,
-    /// recurring_transactions
-    pub products: Vec<String>,
+    pub products: Vec<super::SupportedProduct>,
     /// A list of the country codes supported by the institution.
-    ///
-    /// Possible values: US, GB, ES, NL, FR, IE, CA, DE, IT
-    pub country_codes: Vec<String>,
+    pub country_codes: Vec<super::SupportedCountry>,
     /// The URL for the institution's website
     pub url: Option<String>,
     /// Hexadecimal representation of the primary color used by the institution
     pub primary_color: Option<String>,
     /// Base64 encoded representation of the institution's logo
     pub logo: Option<String>,
-    /// A partial list of routing numbers associated with the institution. This list is provided
-    /// for the purpose of looking up institutions by routing number. It is not comprehensive and
-    /// should never be used as a complete list of routing numbers for an institution.
+    /// A list of routing numbers known to be associated with the institution. This list is
+    /// provided for the purpose of looking up institutions by routing number. It is not
+    /// comprehensive and should never be used as a complete list of routing numbers for an
+    /// institution.
     pub routing_numbers: Vec<String>,
+    /// A partial list of DTC numbers associated with the institution.
+    #[serde(default)]
+    pub dtc_numbers: Vec<String>,
     /// Indicates that the institution has an OAuth login flow.
     pub oauth: bool,
     /// The status of an institution is determined by the health of its Item logins, Transactions
@@ -102,41 +101,34 @@ pub struct Institution {
 /// institution status is not available in the Sandbox environment.
 ///
 /// [/instutions/get_by_id]: https://plaid.com/docs/api/institutions/#institutionsget_by_id
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Default, Clone, Debug)]
 pub struct InstitutionStatus {
-    /// A representation of the status health of a request type. Auth requests, Balance requests,
-    /// Identity requests, Investments requests, Liabilities requests, Transactions updates,
-    /// Investments updates, Liabilities updates, and Item logins each have their own status object.
-    pub item_logins: RequestStatus,
-    /// A representation of the status health of a request type. Auth requests, Balance requests,
-    /// Identity requests, Investments requests, Liabilities requests, Transactions updates,
-    /// Investments updates, Liabilities updates, and Item logins each have their own status object.
-    pub transactions_updates: RequestStatus,
-    /// A representation of the status health of a request type. Auth requests, Balance requests,
-    /// Identity requests, Investments requests, Liabilities requests, Transactions updates,
-    /// Investments updates, Liabilities updates, and Item logins each have their own status object.
-    pub auth: RequestStatus,
-    /// A representation of the status health of a request type. Auth requests, Balance requests,
-    /// Identity requests, Investments requests, Liabilities requests, Transactions updates,
-    /// Investments updates, Liabilities updates, and Item logins each have their own status object.
-    pub identity: RequestStatus,
-    /// A representation of the status health of a request type. Auth requests, Balance requests,
-    /// Identity requests, Investments requests, Liabilities requests, Transactions updates,
-    /// Investments updates, Liabilities updates, and Item logins each have their own status object.
-    pub investment_update: RequestStatus,
-    /// A representation of the status health of a request type. Auth requests, Balance requests,
-    /// Identity requests, Investments requests, Liabilities requests, Transactions updates,
-    /// Investments updates, Liabilities updates, and Item logins each have their own status object.
-    pub liabilities_updates: RequestStatus,
-    /// A representation of the status health of a request type. Auth requests, Balance requests,
-    /// Identity requests, Investments requests, Liabilities requests, Transactions updates,
-    /// Investments updates, Liabilities updates, and Item logins each have their own status object.
-    pub liabilities: RequestStatus,
-    /// A representation of the status health of a request type. Auth requests, Balance requests,
-    /// Identity requests, Investments requests, Liabilities requests, Transactions updates,
-    /// Investments updates, Liabilities updates, and Item logins each have their own status object.
-    pub investments: RequestStatus,
+    /// The status of Item login attempts for the institution.
+    #[serde(default)]
+    pub item_logins: Option<RequestStatus>,
+    /// The status of Transactions updates for the institution.
+    #[serde(default)]
+    pub transactions_updates: Option<RequestStatus>,
+    /// The status of Auth requests for the institution.
+    #[serde(default)]
+    pub auth: Option<RequestStatus>,
+    /// The status of Identity requests for the institution.
+    #[serde(default)]
+    pub identity: Option<RequestStatus>,
+    /// The status of Investments updates for the institution.
+    #[serde(default)]
+    pub investments_updates: Option<RequestStatus>,
+    /// The status of Liabilities updates for the institution.
+    #[serde(default)]
+    pub liabilities_updates: Option<RequestStatus>,
+    /// The status of Liabilities requests for the institution.
+    #[serde(default)]
+    pub liabilities: Option<RequestStatus>,
+    /// The status of Investments requests for the institution.
+    #[serde(default)]
+    pub investments: Option<RequestStatus>,
     /// Details of recent health incidents associated with the institution.
+    #[serde(default)]
     pub health_incidents: Option<Vec<HealthIncident>>,
 }
 
@@ -175,9 +167,16 @@ pub struct Breakdown {
     /// The percentage of logins that are failing due to an issue in the institution's system,
     /// expressed as a decimal.
     pub error_institution: f64,
-    /// The refresh_interval may be DELAYED or STOPPED even when the success rate is high. This
-    /// value is only returned for Transactions status breakdowns.
-    pub refresh_interval: String,
+    /// How frequently data for subscription products like Investments, Transactions, and
+    /// Liabilities is being refreshed for the institution.
+    ///
+    /// The `refresh_interval` may be `DELAYED` or `STOPPED` even when the success rate is high.
+    /// This value is only returned for Transactions, Investments, and Liabilities status
+    /// breakdowns.
+    ///
+    /// Possible values: `NORMAL`, `DELAYED`, `STOPPED`
+    #[serde(default)]
+    pub refresh_interval: Option<String>,
 }
 
 /// Details of recent health incidents associated with the institution.
@@ -186,7 +185,10 @@ pub struct HealthIncident {
     /// The start date of the incident, in ISO 8601 format, e.g. "2020-10-30T15:26:48Z"
     pub start_date: DateTime<Utc>,
     /// The end date of the incident, in ISO 8601 format, e.g. "2020-10-30T15:26:48Z".
-    pub end_date: DateTime<Utc>,
+    ///
+    /// `None` while the incident is ongoing.
+    #[serde(default)]
+    pub end_date: Option<DateTime<Utc>>,
     /// The title of the incident
     pub title: String,
     /// Updates on the health incident.
@@ -197,13 +199,16 @@ pub struct HealthIncident {
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct IncidentUpdate {
     /// The content of the update.
-    pub description: String,
+    #[serde(default)]
+    pub description: Option<String>,
     /// The status of the incident.
     ///
     /// Possible values: INVESTIGATING, IDENTIFIED, SCHEDULED, RESOLVED, UNKNOWN
-    pub status: String,
+    #[serde(default)]
+    pub status: Option<String>,
     /// The date when the update was published, in ISO 8601 format, e.g. "2020-10-30T15:26:48Z".
-    pub updated_date: DateTime<Utc>,
+    #[serde(default)]
+    pub updated_date: Option<DateTime<Utc>>,
 }
 
 /// Metadata that captures what specific payment configurations an institution supports when
@@ -221,6 +226,9 @@ pub struct PaymentInitiationMetadata {
     pub maximum_payment_amount: HashMap<String, String>,
     /// Indicates whether the institution supports returning refund details when initiating a payment.
     pub supports_refund_details: bool,
+    /// Indicates whether the institution supports payment consents.
+    #[serde(default)]
+    pub supports_payment_consents: bool,
     /// Metadata specifically related to valid Payment Initiation standing order configurations for
     /// the institution.
     pub standing_order_metadata: Option<StandingOrderMetadata>,
@@ -258,6 +266,9 @@ pub struct SupportedMethods {
     pub instant_auth: bool,
     /// Indicates if instant match is supported.
     pub instant_match: bool,
-    /// Indicates if automated microdeposits are supported.
+    /// Indicates if automated micro-deposits are supported.
     pub automated_micro_deposits: bool,
+    /// Indicates if instant micro-deposits are supported.
+    #[serde(default)]
+    pub instant_micro_deposits: bool,
 }

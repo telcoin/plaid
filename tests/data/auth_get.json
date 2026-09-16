@@ -1,0 +1,73 @@
+{
+  "accounts": [
+    {
+      "account_id": "vzeNDwK7KQIm4yEog683uElbp9GRLEFXGK98D",
+      "balances": {
+        "available": 100,
+        "current": 110,
+        "limit": null,
+        "iso_currency_code": "USD",
+        "unofficial_currency_code": null
+      },
+      "mask": "9606",
+      "name": "Plaid Checking",
+      "official_name": "Plaid Gold Checking",
+      "subtype": "checking",
+      "type": "depository"
+    }
+  ],
+  "numbers": {
+    "ach": [
+      {
+        "account": "9900009606",
+        "account_id": "vzeNDwK7KQIm4yEog683uElbp9GRLEFXGK98D",
+        "routing": "011401533",
+        "wire_routing": "021000021",
+        "is_tokenized_account_number": false
+      }
+    ],
+    "eft": [
+      {
+        "account": "111122223333",
+        "account_id": "vzeNDwK7KQIm4yEog683uElbp9GRLEFXGK98D",
+        "institution": "021",
+        "branch": "01140"
+      }
+    ],
+    "international": [
+      {
+        "account_id": "vzeNDwK7KQIm4yEog683uElbp9GRLEFXGK98D",
+        "bic": "NWBKGB21",
+        "iban": "GB29NWBK60161331926819"
+      }
+    ],
+    "bacs": [
+      {
+        "account": "31926819",
+        "account_id": "vzeNDwK7KQIm4yEog683uElbp9GRLEFXGK98D",
+        "sort_code": "601613"
+      }
+    ]
+  },
+  "item": {
+    "available_products": [
+      "balance",
+      "identity",
+      "payment_initiation",
+      "transactions"
+    ],
+    "billed_products": [
+      "assets",
+      "auth"
+    ],
+    "consent_expiration_time": null,
+    "error": null,
+    "institution_id": "ins_117650",
+    "institution_name": "Royal Bank of Plaid",
+    "item_id": "DWVAAPWq4RHGlEaNyGKRTAnPLaEmo8Cvq7na6",
+    "update_type": "background",
+    "webhook": "https://www.genericwebhookurl.com/webhook",
+    "auth_method": "INSTANT_AUTH"
+  },
+  "request_id": "m8MDnv9okwxFNBV"
+}
