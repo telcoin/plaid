@@ -4,13 +4,17 @@
 
 An unofficial Rust client library for the [Plaid API].
 
+Types track the [`2020-09-14`] version of the Plaid API.
+
+[`2020-09-14`]: https://plaid.com/docs/api/versioning/
+
 ### Example
 
 1. Add the following to your `Cargo.toml`:
 
    ```toml
    [dependencies]
-   plaid = { git = "https://github.com/telcoin/plaid.git", tag = "v0.9.1" }
+   plaid = { git = "https://github.com/telcoin/plaid.git", tag = "v0.12.0" }
    tokio = { version = "1", features = ["full"] }
    ```
 
@@ -29,7 +33,10 @@ An unofficial Rust client library for the [Plaid API].
         );
 
         // TODO: use the Link flow instead; https://plaid.com/docs/link/#link-flow
-        let public_token = client.sandbox_create_public_token().await?.public_token;
+        let public_token = client
+            .sandbox_create_public_token(&plaid::SandboxCreatePublicTokenRequest::default())
+            .await?
+            .public_token;
 
         let access_token = client
             .exchange_public_token(&public_token)

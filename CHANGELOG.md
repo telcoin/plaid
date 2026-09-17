@@ -1,5 +1,60 @@
 # Changelog
 
+### [v0.12.0](https://github.com/telcoin/plaid/compare/v0.9.1...v0.12.0) (2026-09-16)
+
+Brings the crate in line with the [Plaid API docs](https://plaid.com/docs/api/)
+as of the `2020-09-14_1.729.1` OpenAPI spec.
+
+### ⚠ BREAKING CHANGES
+
+* `Item::error` is now an `Option<ApiError>` rather than an `Option<serde_json::Value>`
+* `Item::available_products` / `billed_products` are now `Option<Vec<SupportedProduct>>` rather than `Option<Vec<String>>`
+* `Institution::products` and `Institution::country_codes` are now `Vec<SupportedProduct>` and `Vec<SupportedCountry>` rather than `Vec<String>`
+* `InstitutionStatus` fields are now `Option<RequestStatus>`; Plaid returns each product's status only when it has enough traffic to compute it
+* `InstitutionStatus::investment_update` is now `investments_updates`, which is the name the API actually uses — the old field never deserialized
+* `Breakdown::refresh_interval`, `HealthIncident::end_date` and the `IncidentUpdate` fields are now optional, matching the spec
+* `Account::ty` and `Account::subtype` are collapsed into a single flattened `ty: AccountType`. `AccountType` is now a data-carrying enum pairing each type with a subtype enum scoped to it — `AccountType::Depository(Option<DepositorySubtype>)`, `Credit(Option<CreditSubtype>)`, `Loan(..)`, `Investment(..)`, `Brokerage(..)`, `Other(..)` — so a subtype cannot be paired with a type it does not belong to. An unrecognised type is preserved as `AccountType::Unknown { ty, subtype }` rather than rejected
+* the flat `AccountSubtype` enum is replaced by the per-type `DepositorySubtype`, `CreditSubtype`, `LoanSubtype`, `InvestmentSubtype`, `BrokerageSubtype` and `OtherSubtype`
+* `AccountFilters` fields are now `AccountSubtypeFilter<T>` over the matching per-type subtype enum, and the wildcard is `SubtypeSelector::All`
+* `PhoneNumberType::Other` is now a unit variant for the documented `other` value; unrecognised values land in the new `PhoneNumberType::Unknown(String)`
+* `SupportedProduct`, `SupportedCountry` and `SupportedProcessor` are no longer `Copy`; each gained an `Unknown(String)` variant so values Plaid adds later round-trip instead of failing to deserialize
+* `SupportedProcessor` no longer has `InteractiveBrokers` or `PrimeTrust`; Plaid no longer documents either as a valid processor
+* `CreateLinkTokenRequest::account_filters` is now a typed `AccountFilters` rather than a `serde_json::Map`
+* `PaymentInitiationConfiguration::payment_id` is now optional, and `consent_id` was added
+* `BalanceRequestOptions::min_last_updated_datetime` is now a `DateTime<FixedOffset>` rather than a `String`
+* `Client::institution_by_id` now takes `&[SupportedCountry]` rather than `&[&str]`
+* `EndUser` and `CreateLinkTokenRequest` gained fields; both now implement `Default`, so construct them with `..Default::default()`
+* `Environment` is no longer `Copy`, because `Environment::Custom` owns a `String`; it is still `Clone`
+
+### Features
+
+* add `Environment::Custom`, which points the client at an arbitrary base URL such as a mock server or proxy, along with `Environment::base_url()`. `Environment`'s `FromStr` now accepts an `http://` or `https://` URL, so `PLAID_ENVIRONMENT` can select one
+* add `Item::institution_name`, `products`, `consented_products`, `update_type` and `auth_method`
+* add `Account::verification_name`, `persistent_account_id`, `apy` and `holder_category`
+* add `AccountType::Brokerage`, plus `AccountType::as_str`, `subtype_str` and a `Display` impl
+* add `Balances::last_updated_datetime`
+* add the remaining `VerificationStatus` variants (`unsent`, `verification_failed`, `database_matched`, and the Database Insights statuses)
+* add `AchAccountNumbers::is_tokenized_account_number`, `can_transfer_in` and `can_transfer_out`
+* add `CreateLinkTokenRequest::required_if_supported_products`, `optional_products`, `additional_consented_products`, `hosted_link` and `user_token`
+* add `CreateLinkTokenResponse::hosted_link_url`, `user_id` and `request_id`
+* add `Institution::dtc_numbers`, `PaymentInitiationMetadata::supports_payment_consents` and `SupportedMethods::instant_micro_deposits`
+* add `ApiError::error_code_reason`, `status`, `causes`, `required_account_subtypes` and `provided_account_subtypes`
+* add the `LOGIN_REPAIRED`, `PENDING_DISCONNECT` and `USER_ACCOUNT_REVOKED` Item webhook codes, plus `user_id` and `environment` on `ItemWebhook`
+* expand `SupportedProduct`, `SupportedCountry`, `SupportedProcessor`, `SupportedLanguage`, `ErrorType` and `WebhookErrorType` to the currently documented values
+* make `WebhookUpdateResponse::item` and `request_id` public — they were private, so the response could not be read
+* add `tests/schema.rs`, which deserializes the response examples published in Plaid's OpenAPI spec and asserts that every string value the spec documents maps to a real variant and round-trips unchanged
+
+### Internal
+
+* replace the hand-written `wire_enum!` and per-string `named_unit_variant!` macros with [`serde-enum-str`](https://crates.io/crates/serde-enum-str) derives; the string enums are now plain `#[serde(rename_all = ...)]` / `#[serde(other)]` declarations. Adds six build-time proc-macro dependencies and no runtime ones
+
+### Fixes
+
+* deprecate `Environment::Development`; Plaid has retired the Development environment and only lists Sandbox and Production as API hosts
+* send `options` (not `option`) in `/institutions/get_by_id` requests, so the request options were previously ignored
+* deprecate `ErrorType::DepositSwitchError`; Plaid has retired the Deposit Switch product
+* point doc links at the current API reference pages
+
 ### [v0.9.1](https://github.com/telcoin/plaid/compare/v0.9.0...v0.9.1) (2022-06-17)
 
 

@@ -1,0 +1,72 @@
+{
+  "accounts": [
+    {
+      "account_id": "BxBXxLj1m4HMXBm9WZZmCWVbPjX16EHwv99vp",
+      "balances": {
+        "available": 100,
+        "current": 110,
+        "iso_currency_code": "USD",
+        "limit": null,
+        "unofficial_currency_code": null
+      },
+      "holder_category": "personal",
+      "mask": "0000",
+      "name": "Plaid Checking",
+      "official_name": "Plaid Gold Standard 0% Interest Checking",
+      "subtype": "checking",
+      "type": "depository"
+    },
+    {
+      "account_id": "dVzbVMLjrxTnLjX4G66XUp5GLklm4oiZy88yK",
+      "balances": {
+        "available": null,
+        "current": 410,
+        "iso_currency_code": "USD",
+        "limit": 2000,
+        "unofficial_currency_code": null
+      },
+      "mask": "3333",
+      "name": "Plaid Credit Card",
+      "official_name": "Plaid Diamond 12.5% APR Interest Credit Card",
+      "subtype": "credit card",
+      "type": "credit"
+    },
+    {
+      "account_id": "Pp1Vpkl9w8sajvK6oEEKtr7vZxBnGpf7LxxLE",
+      "balances": {
+        "available": null,
+        "current": 65262,
+        "iso_currency_code": "USD",
+        "limit": null,
+        "unofficial_currency_code": null
+      },
+      "mask": "7777",
+      "name": "Plaid Student Loan",
+      "official_name": null,
+      "subtype": "student",
+      "type": "loan"
+    }
+  ],
+  "item": {
+    "available_products": [
+      "balance",
+      "identity",
+      "investments"
+    ],
+    "billed_products": [
+      "assets",
+      "auth",
+      "liabilities",
+      "transactions"
+    ],
+    "consent_expiration_time": null,
+    "error": null,
+    "institution_id": "ins_56",
+    "institution_name": "Chase",
+    "item_id": "eVBnVMp7zdTJLkRNr33Rs6zr7KNJqBFL9DrE6",
+    "update_type": "background",
+    "webhook": "https://www.genericwebhookurl.com/webhook",
+    "auth_method": "INSTANT_AUTH"
+  },
+  "request_id": "qk5Bxes3gDfv4F2"
+}

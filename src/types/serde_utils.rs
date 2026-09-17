@@ -60,7 +60,9 @@ pub(crate) mod default_on_null {
     }
 }
 
-// TODO: is there a crate or something that will support this?
+// Matches a single string literal as a unit variant of an untagged enum.
+// String-valued enums proper are handled by `serde_enum_str`; this is only
+// needed for the `"all"` wildcard, which sits alongside a typed subtype enum.
 // HACK: https://github.com/serde-rs/serde/issues/1560
 macro_rules! named_unit_variant {
     ($variant:ident) => {
@@ -102,9 +104,5 @@ macro_rules! named_unit_variant {
 }
 
 pub(crate) mod strings {
-    named_unit_variant!(home);
-    named_unit_variant!(work);
-    named_unit_variant!(office);
-    named_unit_variant!(mobile);
-    named_unit_variant!(mobile1);
+    named_unit_variant!(all);
 }

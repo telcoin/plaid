@@ -67,7 +67,7 @@ impl Client {
         Client {
             client_id: client_id.into(),
             secret: secret.into(),
-            url: format!("https://{}.plaid.com", environment),
+            url: environment.base_url().to_string(),
             client: ReqwestClient::builder()
                 .connect_timeout(Duration::from_secs(30))
                 .build()
@@ -101,7 +101,7 @@ impl Client {
     /// test username to generate a test account with custom data.
     ///
     /// [/sandbox/public_token/create]: https://plaid.com/docs/api/sandbox/#sandboxpublic_tokencreate
-    /// [/item/public_token/exchange]: https://plaid.com/docs/api/tokens/#itempublic_tokenexchange
+    /// [/item/public_token/exchange]: https://plaid.com/docs/api/items/#itempublic_tokenexchange
     /// [`user_custom`]: https://plaid.com/docs/sandbox/user-custom/
     pub async fn sandbox_create_public_token(
         &self,
@@ -138,8 +138,8 @@ impl Client {
     /// initialize other Link flows, such as the update mode flow for tokens
     /// with expired credentials, or the Payment Initiation (Europe) flow.
     ///
-    /// [/link/token/create]: https://plaid.com/docs/api/tokens/#linktokencreate
-    /// [/item/public_token/exchange]: https://plaid.com/docs/api/tokens/#itempublic_tokenexchange
+    /// [/link/token/create]: https://plaid.com/docs/api/link/#linktokencreate
+    /// [/item/public_token/exchange]: https://plaid.com/docs/api/items/#itempublic_tokenexchange
     /// [main Link flow]: https://plaid.com/docs/link/#link-flow
     pub async fn create_link_token(
         &self,
@@ -176,7 +176,7 @@ impl Client {
     /// `access_token`. The item_id is used to identify an Item in a webhook.
     /// The `item_id` can also be retrieved by making an [/item/get] request.
     ///
-    /// [/item/public_token/exchange]: https://plaid.com/docs/api/tokens/#itempublic_tokenexchange
+    /// [/item/public_token/exchange]: https://plaid.com/docs/api/items/#itempublic_tokenexchange
     /// [/item/get]: https://plaid.com/docs/api/items/#itemget
     pub async fn exchange_public_token(
         &self,
@@ -211,14 +211,10 @@ impl Client {
     /// tokens instead; see [/processor/stripe/bank_account_token/create] for
     /// creating tokens for use with Stripe integrations.
     ///
-    /// The processor you are integrating with. Valid values are "achq",
-    /// "check", "checkbook", "circle", "drivewealth", "dwolla", "galileo",
-    /// "interactive_brokers", "lithic", "modern_treasury", "ocrolus",
-    /// "prime_trust", "rize", "sila_money", "svb_api", "unit", "vesta",
-    /// "vopay", "wyre"
+    /// See [`SupportedProcessor`] for the processors this endpoint accepts.
     ///
-    /// [/processor/token/create]: https://plaid.com/docs/api/processors/#processortokencreate
-    /// [/processor/stripe/bank_account_token/create]: https://plaid.com/docs/api/processors/#processorstripebank_account_tokencreate
+    /// [/processor/token/create]: https://plaid.com/docs/api/processor-partners/#processortokencreate
+    /// [/processor/stripe/bank_account_token/create]: https://plaid.com/docs/api/processor-partners/#processorstripebank_account_tokencreate
     pub async fn create_processor_token(
         &self,
         access_token: &str,
@@ -289,7 +285,7 @@ impl Client {
     /// has been initialized with any other product, `balance` itself is not a
     /// product that can be used to initialize Link.
     ///
-    /// [/accounts/balance/get]: https://plaid.com/docs/api/products/#accountsbalanceget
+    /// [/accounts/balance/get]: https://plaid.com/docs/api/products/balance/#accountsbalanceget
     pub async fn balance(
         &self,
         access_token: &str,
@@ -330,7 +326,7 @@ impl Client {
     /// Plaid must communicate directly with the institution to retrieve the
     /// data.
     ///
-    /// [/auth/get]: https://plaid.com/docs/api/products/#authget
+    /// [/auth/get]: https://plaid.com/docs/api/products/auth/#authget
     pub async fn auth(
         &self,
         access_token: &str,
@@ -371,7 +367,7 @@ impl Client {
     /// Plaid must communicate directly with the institution to retrieve the
     /// data.
     ///
-    /// [/identity/get]: https://plaid.com/docs/api/products/#identityget
+    /// [/identity/get]: https://plaid.com/docs/api/products/identity/#identityget
     pub async fn identity(&self, access_token: &str) -> Result<AccountsResponse, Error> {
         // TODO: make this strongly typed?
         let body = json!({
@@ -429,47 +425,32 @@ impl Client {
 
     /// Get details of an institution
     ///
-    /// [/instutions/get_by_id]
+    /// [/institutions/get_by_id]
     ///
     /// Returns a JSON response containing details on a specified financial institution
     /// currently supported by Plaid.
     ///
-    /// Versioning note: API versions 2019-05-29 and earlier allow use of the public_key
-    /// parameter instead of the client_id and secret to authenticate to this endpoint.
-    /// The public_key has been deprecated; all customers are encouraged to use client_id
-    /// and secret instead.
-    ///
     /// # Country codes
     /// Specify an array of Plaid-supported country codes this institution supports, using
-    /// the ISO-3166-1 alpha-2 country code standard. In API versions 2019-05-29 and earlier,
-    /// the country_codes parameter is an optional parameter within the options object and
-    /// will default to `US` if it is not supplied.
+    /// the ISO-3166-1 alpha-2 country code standard.
     ///
-    /// Possible values: `US`, `GB`, `ES`, `NL`, `FR`, `IE`, `CA`, `DE`, `IT`
-    ///
-    /// [/instutions/get_by_id]: https://plaid.com/docs/api/institutions/#institutionsget_by_id
+    /// [/institutions/get_by_id]: https://plaid.com/docs/api/institutions/#institutionsget_by_id
     pub async fn institution_by_id(
         &self,
         institution_id: &str,
-        country_codes: &[&str],
+        country_codes: &[SupportedCountry],
         options: Option<InstitutionRequestOptions>,
     ) -> Result<InstitutionResponse, Error> {
-        let body = if options.is_some() {
-            json!({
-                "client_id": &self.client_id,
-                "secret": &self.secret,
-                "institution_id": institution_id,
-                "country_codes": country_codes,
-                "option": options
-            })
-        } else {
-            json!({
-                "client_id": &self.client_id,
-                "secret": &self.secret,
-                "institution_id": institution_id,
-                "country_codes": country_codes,
-            })
-        };
+        let mut body = json!({
+            "client_id": &self.client_id,
+            "secret": &self.secret,
+            "institution_id": institution_id,
+            "country_codes": country_codes,
+        });
+
+        if let Some(options) = options {
+            body["options"] = json!(options);
+        }
 
         let response = self
             .client
@@ -558,26 +539,17 @@ mod tests {
     async fn can_create_link_token() {
         let (client, _) = client_from_env().await.unwrap();
         client
-            .create_link_token(
-                #[allow(deprecated)]
-                &CreateLinkTokenRequest {
-                    client_name: "My Client".to_string(),
-                    language: SupportedLanguage::en,
-                    country_codes: vec![SupportedCountry::US],
-                    user: EndUser {
-                        client_user_id: "01234567-89AB-CDEF-0123-456789ABCDEF".to_string(),
-                    },
-                    products: vec![SupportedProduct::Auth, SupportedProduct::Identity],
-                    webhook: None,
-                    access_token: None,
-                    link_customization_name: None,
-                    redirect_uri: None,
-                    android_package_name: None,
-                    account_filters: None,
-                    institution_id: None,
-                    payment_initiation: None,
+            .create_link_token(&CreateLinkTokenRequest {
+                client_name: "My Client".to_string(),
+                language: SupportedLanguage::en,
+                country_codes: vec![SupportedCountry::US],
+                user: EndUser {
+                    client_user_id: "01234567-89AB-CDEF-0123-456789ABCDEF".to_string(),
+                    ..Default::default()
                 },
-            )
+                products: vec![SupportedProduct::Auth, SupportedProduct::Identity],
+                ..Default::default()
+            })
             .await
             .unwrap();
     }

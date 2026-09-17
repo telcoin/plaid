@@ -1,6 +1,6 @@
 [package]
 name = "plaid"
-version = "0.11.0"
+version = "0.12.0"
 authors = ["William Myers <will@telco.in>", "Walker Thornley <walker.thornley@telco.in>", "Trevor Wilson, <trevor@telco.in>",  "Justin Clitheroe <justin.clitheroe@telco.in>"]
 edition = "2018"
 description = "Unofficial Rust client library for the Plaid API"
@@ -18,6 +18,7 @@ chrono = { version = "0.4", features = ["serde"] }
 reqwest = { version = "0.12", features = ["json", "gzip"] }
 schemars = { version = "1.2", features = ["chrono04"] }
 secrecy = "0.10"
+serde-enum-str = "0.5"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 

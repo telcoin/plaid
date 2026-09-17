@@ -1,0 +1,107 @@
+{
+  "institution": {
+    "country_codes": [
+      "US"
+    ],
+    "institution_id": "ins_109512",
+    "name": "Houndstooth Bank",
+    "products": [
+      "auth",
+      "balance",
+      "identity",
+      "transactions"
+    ],
+    "routing_numbers": [
+      "011000138",
+      "011200365",
+      "011400495"
+    ],
+    "dtc_numbers": [
+      "2236",
+      "0955",
+      "1367"
+    ],
+    "oauth": false,
+    "status": {
+      "item_logins": {
+        "status": "HEALTHY",
+        "last_status_change": "2019-02-15T15:53:00Z",
+        "breakdown": {
+          "success": 0.9,
+          "error_plaid": 0.01,
+          "error_institution": 0.09
+        }
+      },
+      "transactions_updates": {
+        "status": "HEALTHY",
+        "last_status_change": "2019-02-12T08:22:00Z",
+        "breakdown": {
+          "success": 0.95,
+          "error_plaid": 0.02,
+          "error_institution": 0.03,
+          "refresh_interval": "NORMAL"
+        }
+      },
+      "auth": {
+        "status": "HEALTHY",
+        "last_status_change": "2019-02-15T15:53:00Z",
+        "breakdown": {
+          "success": 0.91,
+          "error_plaid": 0.01,
+          "error_institution": 0.08
+        }
+      },
+      "identity": {
+        "status": "DEGRADED",
+        "last_status_change": "2019-02-15T15:50:00Z",
+        "breakdown": {
+          "success": 0.42,
+          "error_plaid": 0.08,
+          "error_institution": 0.5
+        }
+      },
+      "investments": {
+        "status": "HEALTHY",
+        "last_status_change": "2019-02-15T15:53:00Z",
+        "breakdown": {
+          "success": 0.89,
+          "error_plaid": 0.02,
+          "error_institution": 0.09
+        }
+      },
+      "liabilities": {
+        "status": "HEALTHY",
+        "last_status_change": "2019-02-15T15:53:00Z",
+        "breakdown": {
+          "success": 0.89,
+          "error_plaid": 0.02,
+          "error_institution": 0.09
+        }
+      },
+      "investments_updates": {
+        "status": "HEALTHY",
+        "last_status_change": "2019-02-12T08:22:00Z",
+        "breakdown": {
+          "success": 0.95,
+          "error_plaid": 0.02,
+          "error_institution": 0.03,
+          "refresh_interval": "NORMAL"
+        }
+      },
+      "liabilities_updates": {
+        "status": "HEALTHY",
+        "last_status_change": "2019-02-12T08:22:00Z",
+        "breakdown": {
+          "success": 0.95,
+          "error_plaid": 0.02,
+          "error_institution": 0.03,
+          "refresh_interval": "NORMAL"
+        }
+      }
+    },
+    "primary_color": "#004966",
+    "url": "https://plaid.com",
+    "logo": null
+  },
+  "request_id": "m8MDnv9okwxFNBV"
+}
