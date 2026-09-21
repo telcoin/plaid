@@ -1,5 +1,30 @@
 # Changelog
 
+## [Unreleased]
+
+### Features
+
+* add `Client::remove_item` for [/item/remove], the only call that ends an Item
+  at Plaid. Until it succeeds, Plaid keeps serving — and billing for — a
+  credential the user may already have asked you to give up
+* add `Error::is_item_not_found`, which reads Plaid's `ITEM_NOT_FOUND` as "the
+  state you asked for holds". `/item/remove` answers with it for an Item that is
+  already gone, so a retry after a partial failure is safe
+* add `Client::webhook_verification_key` for [/webhook_verification_key/get],
+  along with `WebhookVerificationKeyResponse` and `WebhookVerificationKey`
+* add a `webhook-verification` feature, off by default, providing
+  `WebhookVerifier` — the check on the `Plaid-Verification` JWT that an inbound
+  webhook carries. Without it a webhook endpoint is unauthenticated: any caller
+  can make the service store, or act on, a delivery Plaid never sent. It bounds
+  what the sender chooses before asking Plaid about it, refuses any algorithm but
+  ES256 and any key Plaid has retired, ties the signature to the body that
+  arrived, bounds replay with Plaid's five-minute window, caches keys by `kid`,
+  and distinguishes a delivery it refused from one it could not decide about
+  (`VerificationError::is_inconclusive`)
+
+[/item/remove]: https://plaid.com/docs/api/items/#itemremove
+[/webhook_verification_key/get]: https://plaid.com/docs/api/webhooks/webhook-verification/#webhook_verification_keyget
+
 ### [v0.12.0](https://github.com/telcoin/plaid/compare/v0.9.1...v0.12.0) (2026-09-16)
 
 Brings the crate in line with the [Plaid API docs](https://plaid.com/docs/api/)

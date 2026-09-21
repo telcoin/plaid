@@ -144,3 +144,63 @@ pub struct Webhook {
     /// Error fields will be `null` if no error has occurred.
     pub error: Option<WebhookError>,
 }
+
+/// The response from performing a `webhook_verification_key` request.
+///
+/// See [/webhook_verification_key/get].
+///
+/// [/webhook_verification_key/get]: https://plaid.com/docs/api/webhooks/webhook-verification/#webhook_verification_keyget
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct WebhookVerificationKeyResponse {
+    /// A JSON Web Key (JWK) that can be used in conjunction with [JWT
+    /// libraries](https://jwt.io/#libraries-io) to verify webhooks.
+    pub key: WebhookVerificationKey,
+
+    /// A unique identifier for the request, which can be used for
+    /// troubleshooting. This identifier, like all Plaid identifiers, is case
+    /// sensitive.
+    pub request_id: String,
+}
+
+/// A JSON Web Key (JWK) for one of Plaid's webhook signing keys.
+///
+/// See [/webhook_verification_key/get].
+///
+/// [/webhook_verification_key/get]: https://plaid.com/docs/api/webhooks/webhook-verification/#webhook_verification_keyget
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct WebhookVerificationKey {
+    /// The algorithm this key signs with — `ES256`.
+    pub alg: String,
+
+    /// The curve — `P-256`.
+    pub crv: String,
+
+    /// The key type — `EC`.
+    pub kty: String,
+
+    /// The intended use of the key — `sig`.
+    #[serde(rename = "use")]
+    pub usage: String,
+
+    /// The ID of the key, which is what a delivery's JWT header names in its
+    /// `kid` field.
+    pub kid: String,
+
+    /// The x coordinate of the public key, base64url-encoded.
+    pub x: String,
+
+    /// The y coordinate of the public key, base64url-encoded.
+    pub y: String,
+
+    /// When this key was created, as a Unix timestamp.
+    pub created_at: i64,
+
+    /// When this key was rotated out, as a Unix timestamp, or `null` if it is
+    /// still current.
+    ///
+    /// A key Plaid has retired must not verify anything: it is exactly the key
+    /// an attacker would want, because a rotation usually means the old one is
+    /// no longer trusted, so `WebhookVerifier` refuses one.
+    #[serde(default)]
+    pub expired_at: Option<i64>,
+}

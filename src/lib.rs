@@ -35,10 +35,14 @@ use serde_json::json;
 
 pub use self::error::*;
 pub use self::types::*;
+#[cfg(feature = "webhook-verification")]
+pub use self::verification::*;
 pub use self::webhook::*;
 
 mod error;
 mod types;
+#[cfg(feature = "webhook-verification")]
+mod verification;
 
 // TODO: add `Error` type and improve error handling
 // TODO: make `AccessToken` type to differentiate from `PublicToken` etc.
@@ -463,6 +467,47 @@ impl Client {
         }
     }
 
+    /// Get webhook verification key
+    ///
+    /// [/webhook_verification_key/get]
+    ///
+    /// Plaid signs all outgoing webhooks and provides JSON Web Tokens (JWTs)
+    /// so that you can verify the authenticity of any incoming webhooks to
+    /// your application. A message signature is included in the
+    /// `Plaid-Verification` header.
+    ///
+    /// The [/webhook_verification_key/get] endpoint provides a JSON Web Key
+    /// (JWK) that can be used to verify a JWT.
+    ///
+    /// The `key_id` comes out of the delivery's own JWT header, so it is
+    /// attacker-chosen until this call answers for it. With the
+    /// `webhook-verification` feature, `WebhookVerifier` does the whole check
+    /// — including bounding the key id before asking.
+    ///
+    /// [/webhook_verification_key/get]: https://plaid.com/docs/api/webhooks/webhook-verification/#webhook_verification_keyget
+    pub async fn webhook_verification_key(
+        &self,
+        key_id: &str,
+    ) -> Result<WebhookVerificationKeyResponse, Error> {
+        // TODO: make this strongly typed?
+        let body = json!({
+            "client_id": &self.client_id,
+            "secret": &self.secret,
+            "key_id": key_id,
+        });
+
+        let response = self
+            .client
+            .post(format!("{}/webhook_verification_key/get", self.url))
+            .json(&body)
+            .send()
+            .await?;
+
+        match response.status() {
+            StatusCode::OK => Ok(response.json().await?),
+            _ => Err(Error::Api(response.json().await?)),
+        }
+    }
 
     /// Get details of an institution
     ///
@@ -607,6 +652,21 @@ mod tests {
         assert!(error.is_item_not_found(), "{:?}", error);
     }
 
+    #[ignore]
+    #[tokio::test]
+    async fn can_get_webhook_verification_key() {
+        let (client, _) = client_from_env().await.unwrap();
+
+        // Without a delivery in hand there is no real `kid` to ask for, so this
+        // only checks that the request reaches the endpoint and is understood:
+        // Plaid rejects the key id itself rather than the call.
+        let error = client
+            .webhook_verification_key("00000000-0000-0000-0000-000000000000")
+            .await
+            .unwrap_err();
+
+        assert!(matches!(error, Error::Api(_)), "{:?}", error);
+    }
 
     #[ignore]
     #[tokio::test]

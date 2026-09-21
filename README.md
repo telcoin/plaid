@@ -49,4 +49,40 @@ Types track the [`2020-09-14`] version of the Plaid API.
     }
    ```
 
+### Verifying webhooks
+
+Plaid signs every webhook it sends, and putting an unsigned endpoint on the
+Internet means any caller can make your service store — or act on — a delivery
+Plaid never sent. Checking the signature needs a crypto stack, so it lives
+behind a feature:
+
+```toml
+[dependencies]
+plaid = { git = "https://github.com/telcoin/plaid.git", tag = "v0.12.0", features = ["webhook-verification"] }
+```
+
+```rust
+let verifier = plaid::WebhookVerifier::new(client);
+
+// `header` is the request's `Plaid-Verification` value, and `body` the exact
+// bytes that arrived.
+match verifier.verify(header, body).await {
+    Ok(verified) => {
+        let webhook: plaid::Webhook = serde_json::from_slice(body)?;
+        // `verified.fingerprint` identifies this delivery, for deduplicating
+        // redeliveries of the same event.
+    }
+    // The key could not be fetched, so nothing was decided: answer in a way
+    // that asks Plaid to send the delivery again.
+    Err(error) if error.is_inconclusive() => return Err(error.into()),
+    // The delivery is not Plaid's. Drop it.
+    Err(_) => {}
+}
+```
+
+A signature proves a delivery came from Plaid, not that it is still true, so a
+handler acting on something consequential should still confirm the current state
+with Plaid. What verification protects is the step before that: nothing
+unverified needs to be written down.
+
 [plaid api]: https://plaid.com/

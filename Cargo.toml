@@ -13,6 +13,12 @@ default = ["rustls-tls"]
 native-tls = ["reqwest/native-tls"]
 rustls-tls = ["reqwest/rustls-tls"]
 
+# Verification of the `Plaid-Verification` JWT on an inbound webhook. Off by
+# default because it is the only thing in the crate that needs a crypto stack,
+# and most callers only make requests. `Client::webhook_verification_key` is
+# available either way; this feature adds what checks a signature with it.
+webhook-verification = ["dep:base64", "dep:hex", "dep:p256", "dep:sha2"]
+
 [dependencies]
 chrono = { version = "0.4", features = ["serde"] }
 reqwest = { version = "0.12", features = ["json", "gzip"] }
@@ -22,9 +28,21 @@ serde-enum-str = "0.5"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 
+# `webhook-verification` only.
+base64 = { version = "0.22", optional = true }
+hex = { version = "0.4", optional = true }
+p256 = { version = "0.13", features = ["ecdsa"], optional = true }
+sha2 = { version = "0.10", optional = true }
+
 [dev-dependencies]
 dotenvy = "0.15.0"
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+
+# `tests/webhook_verification.rs` signs the tokens it then verifies.
+base64 = "0.22"
+hex = "0.4"
+p256 = { version = "0.13", features = ["ecdsa"] }
+sha2 = "0.10"
 
 [package.metadata.release]
 no-dev-version = true

@@ -74,6 +74,26 @@ fn item_remove() {
     let _: ItemRemoveResponse = parse("item_remove");
 }
 
+#[test]
+fn webhook_verification_key_get() {
+    let response: WebhookVerificationKeyResponse = parse("webhook_verification_key_get");
+    assert_eq!(response.key.alg, "ES256");
+    assert_eq!(response.key.crv, "P-256");
+    assert_eq!(response.key.kty, "EC");
+    assert_eq!(response.key.usage, "sig");
+    // `expired_at` is documented as nullable, and a current key has it null;
+    // reading `null` as "retired" would refuse every key Plaid still signs with.
+    assert!(response.key.expired_at.is_none());
+
+    // The documented example is a real point, so it has to survive the trip
+    // from two base64url coordinates to something that can check a signature.
+    #[cfg(feature = "webhook-verification")]
+    response
+        .key
+        .verifying_key()
+        .expect("the documented key should be usable");
+}
+
 /// Every value the spec documents must map to a real variant, never to the
 /// `Unknown` catch-all. This is what guards the `rename_all` rules: a subtly
 /// wrong rename would silently change the value sent on the wire.

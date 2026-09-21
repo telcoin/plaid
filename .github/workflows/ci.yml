@@ -50,7 +50,7 @@ jobs:
 
       - run: cargo clippy --all-features --verbose
       
-      - run: cargo test --verbose
+      - run: cargo test --all-features --verbose
         env:
           PLAID_CLIENT_ID: ${{ secrets.PLAID_CLIENT_ID }}
           PLAID_SECRET: ${{ secrets.PLAID_SECRET }}
