@@ -35,10 +35,14 @@ use serde_json::json;
 
 pub use self::error::*;
 pub use self::types::*;
+#[cfg(feature = "webhook-verification")]
+pub use self::verification::*;
 pub use self::webhook::*;
 
 mod error;
 mod types;
+#[cfg(feature = "webhook-verification")]
+mod verification;
 
 // TODO: add `Error` type and improve error handling
 // TODO: make `AccessToken` type to differentiate from `PublicToken` etc.
@@ -423,6 +427,88 @@ impl Client {
         }
     }
 
+    /// Remove an Item
+    ///
+    /// [/item/remove]
+    ///
+    /// The [/item/remove] endpoint allows you to remove an Item. Once removed,
+    /// the `access_token`, as well as any processor tokens or bank account
+    /// tokens associated with the Item, is no longer valid and cannot be used
+    /// to access any data that was associated with the Item.
+    ///
+    /// **This is the only call that ends an Item at Plaid.** Until it
+    /// succeeds, Plaid keeps serving — and billing for — a credential the user
+    /// may already have asked you to give up, whatever your own records say.
+    ///
+    /// Removing an Item that is already gone answers with an `ITEM_NOT_FOUND`
+    /// Item error rather than succeeding, so a retry after a failure part-way
+    /// through is safe; see [`Error::is_item_not_found`] for reading that as
+    /// success.
+    ///
+    /// [/item/remove]: https://plaid.com/docs/api/items/#itemremove
+    pub async fn remove_item(&self, access_token: &str) -> Result<ItemRemoveResponse, Error> {
+        // TODO: make this strongly typed?
+        let body = json!({
+            "client_id": &self.client_id,
+            "secret": &self.secret,
+            "access_token": access_token,
+        });
+
+        let response = self
+            .client
+            .post(format!("{}/item/remove", self.url))
+            .json(&body)
+            .send()
+            .await?;
+
+        match response.status() {
+            StatusCode::OK => Ok(response.json().await?),
+            _ => Err(Error::Api(response.json().await?)),
+        }
+    }
+
+    /// Get webhook verification key
+    ///
+    /// [/webhook_verification_key/get]
+    ///
+    /// Plaid signs all outgoing webhooks and provides JSON Web Tokens (JWTs)
+    /// so that you can verify the authenticity of any incoming webhooks to
+    /// your application. A message signature is included in the
+    /// `Plaid-Verification` header.
+    ///
+    /// The [/webhook_verification_key/get] endpoint provides a JSON Web Key
+    /// (JWK) that can be used to verify a JWT.
+    ///
+    /// The `key_id` comes out of the delivery's own JWT header, so it is
+    /// attacker-chosen until this call answers for it. With the
+    /// `webhook-verification` feature, `WebhookVerifier` does the whole check
+    /// — including bounding the key id before asking.
+    ///
+    /// [/webhook_verification_key/get]: https://plaid.com/docs/api/webhooks/webhook-verification/#webhook_verification_keyget
+    pub async fn webhook_verification_key(
+        &self,
+        key_id: &str,
+    ) -> Result<WebhookVerificationKeyResponse, Error> {
+        // TODO: make this strongly typed?
+        let body = json!({
+            "client_id": &self.client_id,
+            "secret": &self.secret,
+            "key_id": key_id,
+        });
+
+        let response = self
+            .client
+            .post(format!("{}/webhook_verification_key/get", self.url))
+            .json(&body)
+            .send()
+            .await?;
+
+        match response.status() {
+            StatusCode::OK => Ok(response.json().await?),
+            _ => Err(Error::Api(response.json().await?)),
+        }
+    }
+
     /// Get details of an institution
     ///
     /// [/institutions/get_by_id]
@@ -552,6 +638,34 @@ mod tests {
             })
             .await
             .unwrap();
+    }
+
+    #[ignore]
+    #[tokio::test]
+    async fn can_remove_item() {
+        let (client, token) = client_from_env().await.unwrap();
+        client.remove_item(&token).await.unwrap();
+
+        // Removing it again is Plaid's `ITEM_NOT_FOUND`, which is what makes a
+        // retry after a partial failure safe.
+        let error = client.remove_item(&token).await.unwrap_err();
+        assert!(error.is_item_not_found(), "{:?}", error);
+    }
+
+    #[ignore]
+    #[tokio::test]
+    async fn can_get_webhook_verification_key() {
+        let (client, _) = client_from_env().await.unwrap();
+
+        // Without a delivery in hand there is no real `kid` to ask for, so this
+        // only checks that the request reaches the endpoint and is understood:
+        // Plaid rejects the key id itself rather than the call.
+        let error = client
+            .webhook_verification_key("00000000-0000-0000-0000-000000000000")
+            .await
+            .unwrap_err();
+
+        assert!(matches!(error, Error::Api(_)), "{:?}", error);
     }
 
     #[ignore]
