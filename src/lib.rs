@@ -423,6 +423,47 @@ impl Client {
         }
     }
 
+    /// Remove an Item
+    ///
+    /// [/item/remove]
+    ///
+    /// The [/item/remove] endpoint allows you to remove an Item. Once removed,
+    /// the `access_token`, as well as any processor tokens or bank account
+    /// tokens associated with the Item, is no longer valid and cannot be used
+    /// to access any data that was associated with the Item.
+    ///
+    /// **This is the only call that ends an Item at Plaid.** Until it
+    /// succeeds, Plaid keeps serving — and billing for — a credential the user
+    /// may already have asked you to give up, whatever your own records say.
+    ///
+    /// Removing an Item that is already gone answers with an `ITEM_NOT_FOUND`
+    /// Item error rather than succeeding, so a retry after a failure part-way
+    /// through is safe; see [`Error::is_item_not_found`] for reading that as
+    /// success.
+    ///
+    /// [/item/remove]: https://plaid.com/docs/api/items/#itemremove
+    pub async fn remove_item(&self, access_token: &str) -> Result<ItemRemoveResponse, Error> {
+        // TODO: make this strongly typed?
+        let body = json!({
+            "client_id": &self.client_id,
+            "secret": &self.secret,
+            "access_token": access_token,
+        });
+
+        let response = self
+            .client
+            .post(format!("{}/item/remove", self.url))
+            .json(&body)
+            .send()
+            .await?;
+
+        match response.status() {
+            StatusCode::OK => Ok(response.json().await?),
+            _ => Err(Error::Api(response.json().await?)),
+        }
+    }
+
+
     /// Get details of an institution
     ///
     /// [/institutions/get_by_id]
@@ -553,6 +594,19 @@ mod tests {
             .await
             .unwrap();
     }
+
+    #[ignore]
+    #[tokio::test]
+    async fn can_remove_item() {
+        let (client, token) = client_from_env().await.unwrap();
+        client.remove_item(&token).await.unwrap();
+
+        // Removing it again is Plaid's `ITEM_NOT_FOUND`, which is what makes a
+        // retry after a partial failure safe.
+        let error = client.remove_item(&token).await.unwrap_err();
+        assert!(error.is_item_not_found(), "{:?}", error);
+    }
+
 
     #[ignore]
     #[tokio::test]

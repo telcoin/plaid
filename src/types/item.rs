@@ -73,3 +73,14 @@ pub struct ItemWebhook {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub environment: Option<WebhookEnvironment>,
 }
+
+/// The response from performing a `remove_item` request.
+///
+/// See [/item/remove](https://plaid.com/docs/api/items/#itemremove).
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct ItemRemoveResponse {
+    /// A unique identifier for the request, which can be used for
+    /// troubleshooting. This identifier, like all Plaid identifiers, is case
+    /// sensitive.
+    pub request_id: String,
+}

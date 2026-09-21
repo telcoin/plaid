@@ -6,7 +6,7 @@
 
 use plaid::{
     AccountsResponse, AuthResponse, CreateLinkTokenResponse, InstitutionResponse,
-    WebhookUpdateResponse,
+    ItemRemoveResponse, WebhookUpdateResponse, WebhookVerificationKeyResponse,
 };
 
 fn load(name: &str) -> String {
@@ -67,6 +67,11 @@ fn item_webhook_update() {
 #[test]
 fn link_token_create() {
     let _: CreateLinkTokenResponse = parse("link_token_create");
+}
+
+#[test]
+fn item_remove() {
+    let _: ItemRemoveResponse = parse("item_remove");
 }
 
 /// Every value the spec documents must map to a real variant, never to the

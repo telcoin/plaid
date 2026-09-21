@@ -16,6 +16,46 @@ pub enum Error {
     TransportStd(ReqwestError),
 }
 
+/// The error code Plaid answers with for an `Item` it cannot find, including
+/// one that has already been removed.
+const ITEM_NOT_FOUND: &str = "ITEM_NOT_FOUND";
+
+impl Error {
+    /// Whether this is Plaid's `ITEM_NOT_FOUND`, meaning the Item the request
+    /// named does not exist.
+    ///
+    /// **What makes [`Client::remove_item`] idempotent.** Removing an Item that
+    /// is already gone answers with this rather than succeeding, so a caller
+    /// retrying after a failure part-way through can read it as "the state you
+    /// asked for holds":
+    ///
+    /// ```no_run
+    /// # async fn unlink(client: &plaid::Client, access_token: &str) -> Result<(), plaid::Error> {
+    /// match client.remove_item(access_token).await {
+    ///     Ok(_) => Ok(()),
+    ///     Err(error) if error.is_item_not_found() => Ok(()),
+    ///     Err(error) => Err(error),
+    /// }
+    /// # }
+    /// ```
+    ///
+    /// **Narrow on purpose.** This is the one code Plaid documents for an Item
+    /// that is already gone, and it is the outcome the caller wanted. Every
+    /// other failure — including any other Item error — is a real one, because
+    /// the two ways to be wrong here are not symmetrical: reporting a link
+    /// revoked when it was not leaves a live credential behind, while refusing
+    /// one that really was gone costs a retry that succeeds.
+    ///
+    /// [`Client::remove_item`]: crate::Client::remove_item
+    pub fn is_item_not_found(&self) -> bool {
+        matches!(
+            self,
+            Error::Api(api)
+                if api.error_type == ErrorType::ItemError && api.error_code == ITEM_NOT_FOUND
+        )
+    }
+}
+
 impl From<ReqwestError> for Error {
     fn from(error: ReqwestError) -> Self {
         Error::TransportStd(error)
